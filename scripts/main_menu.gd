@@ -10,6 +10,18 @@ extends Control
 @onready var name_input: LineEdit = $CenterPanel/MenuPanel/VBox/NameInput
 @onready var status_label: Label = $CenterPanel/MenuPanel/VBox/StatusLabel
 
+# --- Settings panel ---
+@onready var settings_panel: Control = $CenterPanel/SettingsPanel
+@onready var mode_option: OptionButton = $CenterPanel/SettingsPanel/VBox/ModeOption
+@onready var map_option: OptionButton = $CenterPanel/SettingsPanel/VBox/MapOption
+@onready var bots_check: CheckBox = $CenterPanel/SettingsPanel/VBox/BotsRow/BotsCheck
+@onready var bots_count_label: Label = $CenterPanel/SettingsPanel/VBox/BotsRow/BotsCountLabel
+@onready var bots_slider: HSlider = $CenterPanel/SettingsPanel/VBox/BotsSlider
+@onready var time_limit_option: OptionButton = $CenterPanel/SettingsPanel/VBox/TimeLimitOption
+@onready var map_desc_label: Label = $CenterPanel/SettingsPanel/VBox/MapDesc
+@onready var confirm_btn: Button = $CenterPanel/SettingsPanel/VBox/ConfirmButton
+@onready var back_btn: Button = $CenterPanel/SettingsPanel/VBox/BackButton
+
 # --- Lobby panel (shown after create/join) ---
 @onready var lobby_panel: Control = $CenterPanel/LobbyPanel
 @onready var room_code_label: Label = $CenterPanel/LobbyPanel/VBox/RoomCodeLabel
@@ -24,6 +36,7 @@ extends Control
 const AUTO_START_SECONDS := 30
 var _countdown_active := false
 var _countdown_remaining := 0
+var _settings_mode := ""  # "solo" or "create" — what happens after settings confirm
 
 func _ready() -> void:
 	play_solo_btn.pressed.connect(_on_play_solo)
@@ -32,9 +45,19 @@ func _ready() -> void:
 	copy_btn.pressed.connect(_on_copy_link)
 	start_now_btn.pressed.connect(_on_start_now)
 	cancel_btn.pressed.connect(_on_cancel)
+	confirm_btn.pressed.connect(_on_settings_confirm)
+	back_btn.pressed.connect(_on_settings_back)
+	
+	# Settings control signals
+	bots_check.toggled.connect(_on_bots_toggled)
+	bots_slider.value_changed.connect(_on_bots_slider_changed)
+	map_option.item_selected.connect(_on_map_selected)
 	
 	lobby_panel.visible = false
+	settings_panel.visible = false
 	menu_panel.visible = true
+	
+	_populate_settings_controls()
 	
 	NetworkManager.room_created.connect(_on_room_created)
 	NetworkManager.room_joined.connect(_on_room_joined)
@@ -53,21 +76,101 @@ func _ready() -> void:
 			code_input.text = str(url_code).to_upper()
 			status_label.text = "Invite code detected! Enter your name and click Join."
 
+# ---- Settings controls population ----
+
+func _populate_settings_controls() -> void:
+	# Game modes
+	mode_option.clear()
+	mode_option.add_item("Team vs Team", 0)
+	mode_option.add_item("Deathmatch", 1)
+	mode_option.add_item("Capture the Flag", 2)
+	mode_option.selected = GameSettings.game_mode
+	
+	# Maps
+	map_option.clear()
+	var idx := 0
+	for key in GameSettings.AVAILABLE_MAPS:
+		map_option.add_item(GameSettings.AVAILABLE_MAPS[key].name, idx)
+		map_option.set_item_metadata(idx, key)
+		if key == GameSettings.selected_map:
+			map_option.selected = idx
+		idx += 1
+	_update_map_description()
+	
+	# Bots
+	bots_check.button_pressed = GameSettings.bots_enabled
+	bots_slider.value = GameSettings.bot_count
+	bots_slider.editable = GameSettings.bots_enabled
+	bots_count_label.text = "Count: " + str(GameSettings.bot_count)
+	
+	# Time limit
+	time_limit_option.clear()
+	var tl_idx := 0
+	for mins in GameSettings.TIME_LIMIT_OPTIONS:
+		if mins == 0:
+			time_limit_option.add_item("No Limit", tl_idx)
+		else:
+			time_limit_option.add_item(str(mins) + " min", tl_idx)
+		if mins == GameSettings.time_limit_minutes:
+			time_limit_option.selected = tl_idx
+		tl_idx += 1
+
+func _on_bots_toggled(pressed: bool) -> void:
+	bots_slider.editable = pressed
+	if not pressed:
+		bots_count_label.text = "Count: 0"
+	else:
+		bots_count_label.text = "Count: " + str(int(bots_slider.value))
+
+func _on_bots_slider_changed(value: float) -> void:
+	bots_count_label.text = "Count: " + str(int(value))
+
+func _on_map_selected(idx: int) -> void:
+	_update_map_description()
+
+func _update_map_description() -> void:
+	var key = map_option.get_item_metadata(map_option.selected)
+	if key and GameSettings.AVAILABLE_MAPS.has(key):
+		map_desc_label.text = GameSettings.AVAILABLE_MAPS[key].description
+	else:
+		map_desc_label.text = ""
+
+func _apply_settings() -> void:
+	GameSettings.game_mode = mode_option.selected as GameSettings.GameMode
+	GameSettings.selected_map = map_option.get_item_metadata(map_option.selected)
+	GameSettings.bots_enabled = bots_check.button_pressed
+	GameSettings.bot_count = int(bots_slider.value)
+	var tl_idx = time_limit_option.selected
+	if tl_idx >= 0 and tl_idx < GameSettings.TIME_LIMIT_OPTIONS.size():
+		GameSettings.time_limit_minutes = GameSettings.TIME_LIMIT_OPTIONS[tl_idx]
+
 # ---- Menu actions ----
 
 func _on_play_solo() -> void:
-	NetworkManager._reset_state()
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	_settings_mode = "solo"
+	_show_settings()
 
 func _on_create_game() -> void:
-	var player_name = _get_player_name("Host")
-	status_label.text = "Connecting..."
-	_disable_buttons()
-	
-	NetworkManager.connect_to_relay(_get_relay_url())
-	if not await _wait_for_connection():
-		return
-	NetworkManager.create_room(player_name)
+	_settings_mode = "create"
+	_show_settings()
+
+func _on_settings_confirm() -> void:
+	_apply_settings()
+	if _settings_mode == "solo":
+		NetworkManager._reset_state()
+		get_tree().change_scene_to_file("res://scenes/main.tscn")
+	elif _settings_mode == "create":
+		var player_name = _get_player_name("Host")
+		status_label.text = "Connecting..."
+		_show_menu()
+		_disable_buttons()
+		NetworkManager.connect_to_relay(_get_relay_url())
+		if not await _wait_for_connection():
+			return
+		NetworkManager.create_room(player_name)
+
+func _on_settings_back() -> void:
+	_show_menu()
 
 func _on_join_game() -> void:
 	var code = code_input.text.strip_edges().to_upper()
@@ -145,8 +248,18 @@ func _on_disconnected() -> void:
 
 # ---- UI switching ----
 
+func _show_settings() -> void:
+	menu_panel.visible = false
+	lobby_panel.visible = false
+	settings_panel.visible = true
+	if _settings_mode == "solo":
+		confirm_btn.text = "START GAME"
+	else:
+		confirm_btn.text = "CREATE & HOST"
+
 func _show_lobby(code: String) -> void:
 	menu_panel.visible = false
+	settings_panel.visible = false
 	lobby_panel.visible = true
 	room_code_label.text = code
 	invite_link_input.text = _get_invite_url(code)
@@ -155,6 +268,7 @@ func _show_lobby(code: String) -> void:
 
 func _show_menu() -> void:
 	lobby_panel.visible = false
+	settings_panel.visible = false
 	menu_panel.visible = true
 	_enable_buttons()
 	status_label.text = ""

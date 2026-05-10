@@ -1,6 +1,7 @@
 extends Node
 
 # Round-based game state for one-hit elimination paintball
+# Supports: Team vs Team (rounds), Deathmatch (kills), Capture the Flag
 
 enum MatchPhase { WAITING, COUNTDOWN, PLAYING, ROUND_OVER, MATCH_OVER }
 
@@ -9,10 +10,10 @@ signal round_ended(winner_team: int)
 signal match_ended(winner_team: int)
 signal player_eliminated(victim_id: int, killer_id: int)
 signal score_updated(player_score: int, bot_score: int)
+signal time_updated(seconds_remaining: float)
+signal kill_score_updated(scores: Dictionary)
 
-# Match settings
-const ROUNDS_TO_WIN := 3
-const TOTAL_ROUNDS := 5
+# Constants
 const COUNTDOWN_TIME := 3.0
 const ROUND_OVER_DELAY := 2.0
 
@@ -23,6 +24,13 @@ var player_wins := 0
 var bot_wins := 0
 var players_alive: Array[int] = []  # IDs of alive players on team 0
 var bots_alive: Array[int] = []     # IDs of alive bots on team 1
+
+# Time limit
+var time_remaining := 0.0
+var time_limit_enabled := false
+
+# Deathmatch scoring — kill counts per player/bot ID
+var kill_scores: Dictionary = {}
 
 # Weapon data
 var weapons: Dictionary = {
@@ -38,10 +46,28 @@ func get_weapon_data(weapon_name: String) -> Dictionary:
 		return weapons[weapon_name]
 	return weapons["pistol"]
 
+func _process(delta: float) -> void:
+	if match_phase == MatchPhase.PLAYING and time_limit_enabled:
+		time_remaining -= delta
+		time_updated.emit(time_remaining)
+		if time_remaining <= 0:
+			time_remaining = 0
+			_on_time_expired()
+
 func start_match() -> void:
 	current_round = 0
 	player_wins = 0
 	bot_wins = 0
+	kill_scores.clear()
+	
+	# Configure time limit from settings
+	if GameSettings.time_limit_minutes > 0:
+		time_limit_enabled = true
+		time_remaining = GameSettings.time_limit_minutes * 60.0
+	else:
+		time_limit_enabled = false
+		time_remaining = 0.0
+	
 	start_round()
 
 func start_round() -> void:
@@ -58,15 +84,23 @@ func register_elimination(victim_id: int, killer_id: int) -> void:
 	
 	player_eliminated.emit(victim_id, killer_id)
 	
-	# Remove from alive lists
-	players_alive.erase(victim_id)
-	bots_alive.erase(victim_id)
+	var mode = GameSettings.game_mode
 	
-	# Check round over
-	if players_alive.is_empty():
-		end_round(1)  # Bots win
-	elif bots_alive.is_empty():
-		end_round(0)  # Player wins
+	if mode == GameSettings.GameMode.DEATHMATCH:
+		# Track kills per player
+		if not kill_scores.has(killer_id):
+			kill_scores[killer_id] = 0
+		kill_scores[killer_id] += 1
+		kill_score_updated.emit(kill_scores)
+	else:
+		# Team vs Team / CTF — round-based elimination
+		players_alive.erase(victim_id)
+		bots_alive.erase(victim_id)
+		
+		if players_alive.is_empty():
+			end_round(1)  # Bots win
+		elif bots_alive.is_empty():
+			end_round(0)  # Player wins
 
 func end_round(winner_team: int) -> void:
 	match_phase = MatchPhase.ROUND_OVER
@@ -80,9 +114,34 @@ func end_round(winner_team: int) -> void:
 	round_ended.emit(winner_team)
 	
 	# Check match over
-	if player_wins >= ROUNDS_TO_WIN or bot_wins >= ROUNDS_TO_WIN:
+	var rounds_needed = GameSettings.rounds_to_win
+	if player_wins >= rounds_needed or bot_wins >= rounds_needed:
 		match_phase = MatchPhase.MATCH_OVER
-		match_ended.emit(0 if player_wins >= ROUNDS_TO_WIN else 1)
+		match_ended.emit(0 if player_wins >= rounds_needed else 1)
+
+func _on_time_expired() -> void:
+	var mode = GameSettings.game_mode
+	
+	if mode == GameSettings.GameMode.DEATHMATCH:
+		# Whoever has most kills wins
+		match_phase = MatchPhase.MATCH_OVER
+		var best_id := -1
+		var best_kills := -1
+		for id in kill_scores:
+			if kill_scores[id] > best_kills:
+				best_kills = kill_scores[id]
+				best_id = id
+		# Team 0 = player, anything else = bot
+		var winner = 0 if best_id == 0 else 1
+		match_ended.emit(winner)
+	else:
+		# Team modes — whoever has more round wins
+		match_phase = MatchPhase.MATCH_OVER
+		var winner = 0 if player_wins >= bot_wins else 1
+		match_ended.emit(winner)
 
 func is_match_over() -> bool:
 	return match_phase == MatchPhase.MATCH_OVER
+
+func get_kill_score(id: int) -> int:
+	return kill_scores.get(id, 0)

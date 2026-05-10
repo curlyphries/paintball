@@ -8,11 +8,30 @@ extends Control
 @onready var elimination_feed: VBoxContainer = $EliminationFeed
 @onready var crosshair: ColorRect = $Crosshair
 @onready var player_list: VBoxContainer = $PlayerList
+@onready var timer_label: Label = $TimerLabel
+@onready var kill_score_label: Label = $KillScoreLabel
+@onready var mode_label: Label = $ModeLabel
 
 func _ready() -> void:
 	center_message.visible = false
 	GameState.score_updated.connect(_on_score_updated)
+	GameState.time_updated.connect(_on_time_updated)
+	GameState.kill_score_updated.connect(_on_kill_score_updated)
 	event_log_container = $EventLog
+	
+	# Show mode and map info
+	mode_label.text = GameSettings.get_mode_name() + " | " + GameSettings.get_map_name()
+	
+	# Configure HUD for game mode
+	var is_dm = GameSettings.game_mode == GameSettings.GameMode.DEATHMATCH
+	round_label.visible = not is_dm
+	score_label.visible = not is_dm
+	kill_score_label.visible = is_dm
+	timer_label.visible = GameState.time_limit_enabled
+	
+	if is_dm:
+		kill_score_label.text = "Kills: 0"
+	
 	# Refresh player list every 0.5s
 	var timer = Timer.new()
 	timer.wait_time = 0.5
@@ -68,12 +87,30 @@ func show_round_result(text: String) -> void:
 
 func show_match_result(text: String, player_wins: int, bot_wins: int) -> void:
 	center_message.visible = true
-	center_message.text = text + "\n" + str(player_wins) + " - " + str(bot_wins)
+	if player_wins == 0 and bot_wins == 0:
+		center_message.text = text  # Deathmatch — no round score
+	else:
+		center_message.text = text + "\n" + str(player_wins) + " - " + str(bot_wins)
 
 var event_log_container: VBoxContainer = null
 
 func _on_score_updated(player_score: int, bot_score: int) -> void:
 	score_label.text = str(player_score) + " - " + str(bot_score)
+
+func _on_time_updated(seconds_remaining: float) -> void:
+	if seconds_remaining <= 0:
+		timer_label.text = "0:00"
+		return
+	var mins = int(seconds_remaining) / 60
+	var secs = int(seconds_remaining) % 60
+	timer_label.text = str(mins) + ":" + ("0" + str(secs) if secs < 10 else str(secs))
+	# Flash red when under 30 seconds
+	if seconds_remaining < 30:
+		timer_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.2, 1.0))
+
+func _on_kill_score_updated(scores: Dictionary) -> void:
+	var my_kills = scores.get(0, 0)
+	kill_score_label.text = "Kills: " + str(my_kills)
 
 var _list_built := false
 

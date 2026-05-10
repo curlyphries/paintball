@@ -1,8 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/main_game.gd" id="1_maingame"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="2_hud"]
-[ext_resource type="PackedScene" path="res://scenes/maps/warehouse.tscn" id="3_warehouse"]
 [ext_resource type="Texture2D" path="res://assets/textures/skybox.png" id="5_skybox"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMat"]
@@ -24,8 +23,6 @@ ssao_enabled = true
 script = ExtResource("1_maingame")
 
 [node name="World" type="Node3D" parent="."]
-
-[node name="Map" parent="World" instance=ExtResource("3_warehouse")]
 
 [node name="Players" type="Node3D" parent="."]
 
@@ -151,6 +148,51 @@ offset_top = 80.0
 offset_right = -20.0
 offset_bottom = 300.0
 grow_horizontal = 0
+
+[node name="TimerLabel" type="Label" parent="UI/HUD"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -60.0
+offset_top = 70.0
+offset_right = 60.0
+offset_bottom = 95.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1.0, 0.9, 0.6, 1.0)
+text = ""
+horizontal_alignment = 1
+
+[node name="KillScoreLabel" type="Label" parent="UI/HUD"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -80.0
+offset_top = 40.0
+offset_right = 80.0
+offset_bottom = 65.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1.0, 0.6, 0.2, 1.0)
+text = ""
+horizontal_alignment = 1
+
+[node name="ModeLabel" type="Label" parent="UI/HUD"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_top = 10.0
+offset_right = -20.0
+offset_bottom = 30.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1.0)
+text = ""
+horizontal_alignment = 2
 
 [node name="Crosshair" type="ColorRect" parent="UI/HUD"]
 layout_mode = 1

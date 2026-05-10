@@ -141,6 +141,111 @@ text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
 
+[node name="SettingsPanel" type="Control" parent="CenterPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterPanel/SettingsPanel"]
+layout_mode = 1
+anchor_left = 0.05
+anchor_top = 0.15
+anchor_right = 0.95
+anchor_bottom = 0.92
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="SettingsTitle" type="Label" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1.0, 0.85, 0.2, 1.0)
+text = "GAME SETTINGS"
+horizontal_alignment = 1
+
+[node name="ModeLabel" type="Label" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1.0)
+text = "GAME MODE"
+
+[node name="ModeOption" type="OptionButton" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+
+[node name="MapLabel" type="Label" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1.0)
+text = "MAP"
+
+[node name="MapOption" type="OptionButton" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+
+[node name="BotsRow" type="HBoxContainer" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BotsCheck" type="CheckBox" parent="CenterPanel/SettingsPanel/VBox/BotsRow"]
+layout_mode = 2
+text = "Bots"
+button_pressed = true
+
+[node name="BotsCountLabel" type="Label" parent="CenterPanel/SettingsPanel/VBox/BotsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Count: 3"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="BotsSlider" type="HSlider" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 24)
+min_value = 1.0
+max_value = 7.0
+step = 1.0
+value = 3.0
+
+[node name="TimeLimitLabel" type="Label" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1.0)
+text = "TIME LIMIT"
+
+[node name="TimeLimitOption" type="OptionButton" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+
+[node name="SettingsSpacer" type="Control" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 6)
+
+[node name="MapDesc" type="Label" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.5, 0.5, 0.55, 1.0)
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ConfirmButton" type="Button" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+theme_override_font_sizes/font_size = 18
+text = "START GAME"
+
+[node name="BackButton" type="Button" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+theme_override_font_sizes/font_size = 13
+text = "BACK"
+
 [node name="LobbyPanel" type="Control" parent="CenterPanel"]
 visible = false
 layout_mode = 1

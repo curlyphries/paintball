@@ -1,0 +1,210 @@
+[gd_scene load_steps=7 format=3]
+
+[sub_resource type="StandardMaterial3D" id="mat_floor"]
+albedo_color = Color(0.25, 0.25, 0.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_wall"]
+albedo_color = Color(0.4, 0.35, 0.4, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_platform"]
+albedo_color = Color(0.35, 0.3, 0.35, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_ramp"]
+albedo_color = Color(0.3, 0.3, 0.35, 1)
+
+[sub_resource type="StandardMaterial3D" id="mat_pillar"]
+albedo_color = Color(0.5, 0.45, 0.5, 1)
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_ar"]
+agent_radius = 0.4
+agent_height = 1.8
+agent_max_climb = 0.3
+
+[node name="Arena" type="Node3D"]
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_ar")
+
+[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(36, 0.5, 36)
+material = SubResource("mat_floor")
+
+[node name="WallNorth" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -18.25)
+use_collision = true
+collision_layer = 1
+size = Vector3(36, 5, 0.5)
+material = SubResource("mat_wall")
+
+[node name="WallSouth" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 18.25)
+use_collision = true
+collision_layer = 1
+size = Vector3(36, 5, 0.5)
+material = SubResource("mat_wall")
+
+[node name="WallEast" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.25, 2.5, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(0.5, 5, 36)
+material = SubResource("mat_wall")
+
+[node name="WallWest" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18.25, 2.5, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(0.5, 5, 36)
+material = SubResource("mat_wall")
+
+[node name="CenterPlatform" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(6, 2.0, 6)
+material = SubResource("mat_platform")
+
+[node name="PlatformNE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.75, -11)
+use_collision = true
+collision_layer = 1
+size = Vector3(5, 1.5, 5)
+material = SubResource("mat_platform")
+
+[node name="PlatformNW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.75, -11)
+use_collision = true
+collision_layer = 1
+size = Vector3(5, 1.5, 5)
+material = SubResource("mat_platform")
+
+[node name="PlatformSE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.75, 11)
+use_collision = true
+collision_layer = 1
+size = Vector3(5, 1.5, 5)
+material = SubResource("mat_platform")
+
+[node name="PlatformSW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0.75, 11)
+use_collision = true
+collision_layer = 1
+size = Vector3(5, 1.5, 5)
+material = SubResource("mat_platform")
+
+[node name="RampN" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 0.94, -0.34, 0, 0.34, 0.94, 0, 0.7, -5)
+use_collision = true
+collision_layer = 1
+size = Vector3(3, 0.2, 4)
+material = SubResource("mat_ramp")
+
+[node name="RampS" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 0.94, 0.34, 0, -0.34, 0.94, 0, 0.7, 5)
+use_collision = true
+collision_layer = 1
+size = Vector3(3, 0.2, 4)
+material = SubResource("mat_ramp")
+
+[node name="RampE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(0.94, 0, 0.34, 0, 1, 0, -0.34, 0, 0.94, 5, 0.7, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(4, 0.2, 3)
+material = SubResource("mat_ramp")
+
+[node name="RampW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(0.94, 0, -0.34, 0, 1, 0, 0.34, 0, 0.94, -5, 0.7, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(4, 0.2, 3)
+material = SubResource("mat_ramp")
+
+[node name="Pillar1" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2.5, -6)
+use_collision = true
+collision_layer = 1
+radius = 0.5
+height = 5.0
+material = SubResource("mat_pillar")
+
+[node name="Pillar2" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2.5, -6)
+use_collision = true
+collision_layer = 1
+radius = 0.5
+height = 5.0
+material = SubResource("mat_pillar")
+
+[node name="Pillar3" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2.5, 6)
+use_collision = true
+collision_layer = 1
+radius = 0.5
+height = 5.0
+material = SubResource("mat_pillar")
+
+[node name="Pillar4" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2.5, 6)
+use_collision = true
+collision_layer = 1
+radius = 0.5
+height = 5.0
+material = SubResource("mat_pillar")
+
+[node name="CoverN" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, -13)
+use_collision = true
+collision_layer = 1
+size = Vector3(4, 1.5, 0.5)
+material = SubResource("mat_platform")
+
+[node name="CoverS" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 13)
+use_collision = true
+collision_layer = 1
+size = Vector3(4, 1.5, 0.5)
+material = SubResource("mat_platform")
+
+[node name="CoverE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13, 0.75, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(0.5, 1.5, 4)
+material = SubResource("mat_platform")
+
+[node name="CoverW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -13, 0.75, 0)
+use_collision = true
+collision_layer = 1
+size = Vector3(0.5, 1.5, 4)
+material = SubResource("mat_platform")
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Spawn1" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.5, -15)
+
+[node name="Spawn2" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.5, -15)
+
+[node name="Spawn3" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.5, 15)
+
+[node name="Spawn4" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.5, 15)
+
+[node name="Spawn5" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -15)
+
+[node name="Spawn6" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 15)
+
+[node name="Spawn7" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.5, 0)
+
+[node name="Spawn8" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.5, 0)

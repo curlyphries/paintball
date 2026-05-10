@@ -38,9 +38,9 @@ var _can_see := false
 var _vision_check_timer := 0.0
 const VISION_CHECK_INTERVAL := 0.15  # Check 6-7 times/sec, not every frame
 
-# Map bounds (warehouse)
-const MAP_MIN := Vector3(-18, 0, -13)
-const MAP_MAX := Vector3(18, 0, 13)
+# Map bounds — set per map
+var MAP_MIN := Vector3(-18, 0, -13)
+var MAP_MAX := Vector3(18, 0, 13)
 
 # Node references
 @onready var character_model: Node3D = $CharacterModel

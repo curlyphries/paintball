@@ -23,7 +23,7 @@ These three scripts are loaded automatically by Godot and are accessible globall
 
 **Key methods:**
 - `get_map_scene_path()` — returns the `.tscn` path for the selected map
-- `get_mode_name()` — returns human-readable mode name
+- `get_mode_name()` — returns a friendly display name for the current mode
 - `get_effective_bot_count()` — returns 0 if bots disabled
 - `reset_to_defaults()` — restores all settings
 

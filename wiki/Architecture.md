@@ -223,7 +223,7 @@ The player with the highest score is the **MVP**.
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| Game engine | Godot | 4.6 |
+| Game engine | [Godot](https://godotengine.org/) | 4.6 |
 | Game language | GDScript | 4.x |
 | Relay server | Node.js | 18+ |
 | WebSocket library | ws | 8.16+ |

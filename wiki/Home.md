@@ -2,7 +2,7 @@
 
 Welcome to the **Paintball Arena** wiki — the comprehensive guide to the game, its architecture, and how to make it your own.
 
-Paintball Arena is a 3D first-person multiplayer paintball game that runs entirely in the browser. It's built with Godot 4.6 (GDScript) and a lightweight Node.js WebSocket relay server. The entire project was **vibecoded** — built from scratch using AI-assisted development with [Windsurf](https://codeium.com/windsurf) as the IDE.
+Paintball Arena is a 3D first-person multiplayer paintball game that runs entirely in the browser. It's built with [Godot 4.6](https://godotengine.org/) (GDScript) and a lightweight Node.js WebSocket relay server. The entire project was **vibecoded** — built from scratch using AI-assisted development with [Windsurf](https://codeium.com/windsurf) as the IDE.
 
 ---
 

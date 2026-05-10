@@ -20,7 +20,7 @@ The project started with a decision: **make a multiplayer game that runs in the 
 
 The AI helped evaluate the options and the choice landed on:
 
-- **Godot 4.6** — open-source game engine with HTML5 export
+- **[Godot 4.6](https://godotengine.org/)** — open-source game engine with HTML5 export
 - **GDScript** — Godot's built-in language (Python-like, easy to iterate on)
 - **WebSocket relay** — simplest possible multiplayer architecture
 - **Node.js + ws** — single-dependency relay server

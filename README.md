@@ -2,7 +2,7 @@
 
 A 3D first-person multiplayer paintball game that runs in the browser. Host it yourself, share a room code, and play with family and friends — no installs required.
 
-Built with **Godot 4.6** (GDScript) + a lightweight **Node.js WebSocket relay server**.
+Built with **[Godot 4.6](https://godotengine.org/)** (GDScript) + a lightweight **Node.js WebSocket relay server**.
 
 > **Vibecoded with [Windsurf](https://codeium.com/windsurf)** — this entire game was built using AI-assisted development. See [How It Was Built](../../wiki/How-It-Was-Built) for the full story.
 
@@ -30,7 +30,7 @@ Built with **Godot 4.6** (GDScript) + a lightweight **Node.js WebSocket relay se
 ### Prerequisites
 
 - **Docker + Docker Compose** (recommended)
-- **Godot 4.6+** (for exporting the game to HTML5)
+- **[Godot 4.6+](https://godotengine.org/download)** (for exporting the game to HTML5)
 
 ### One-Command Deploy
 

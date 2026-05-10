@@ -8,7 +8,7 @@ Everything you need to host Paintball Arena for your family and friends — from
 
 | Requirement | Why |
 |-------------|-----|
-| **Godot 4.6+** | Needed to export the game to HTML5 (one-time step) |
+| **[Godot 4.6+](https://godotengine.org/download)** | Needed to export the game to HTML5 (one-time step) |
 | **Node.js 18+** | Runs the relay server |
 | **Docker** (optional) | Easiest deployment method |
 

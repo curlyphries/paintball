@@ -74,6 +74,7 @@ func _on_hit(collision_info: KinematicCollision3D) -> void:
 	var hit_character := false
 	if collider is CharacterBody3D and collider.has_method("take_hit"):
 		if collider.player_id != owner_id:
+			GameState.record_shot_hit(owner_id)
 			collider.take_hit(owner_id)
 			hit_character = true
 	

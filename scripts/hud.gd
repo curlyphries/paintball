@@ -17,6 +17,12 @@ extends Control
 @onready var chat_input: LineEdit = $ChatPanel/ChatVBox/ChatInputRow/ChatInput
 @onready var chat_send_btn: Button = $ChatPanel/ChatVBox/ChatInputRow/ChatSendBtn
 @onready var help_overlay: PanelContainer = $HelpOverlay
+@onready var scoreboard_panel: PanelContainer = $ScoreboardPanel
+@onready var scoreboard_result: Label = $ScoreboardPanel/ScoreboardVBox/ScoreboardResult
+@onready var scoreboard_header: HBoxContainer = $ScoreboardPanel/ScoreboardVBox/ScoreboardHeader
+@onready var scoreboard_rows: VBoxContainer = $ScoreboardPanel/ScoreboardVBox/ScoreboardScroll/ScoreboardRows
+@onready var scoreboard_mvp: Label = $ScoreboardPanel/ScoreboardVBox/ScoreboardMVP
+@onready var scoreboard_duration: Label = $ScoreboardPanel/ScoreboardVBox/ScoreboardDuration
 
 var chat_is_open := false
 const MAX_CHAT_MESSAGES := 50
@@ -48,7 +54,8 @@ func _ready() -> void:
 	timer.timeout.connect(_refresh_player_list)
 	add_child(timer)
 	
-	# Chat setup
+	# Panels setup
+	scoreboard_panel.visible = false
 	chat_panel.visible = false
 	help_overlay.visible = false
 	chat_input.text_submitted.connect(_on_chat_submitted)
@@ -293,6 +300,88 @@ func _add_chat_message(sender: String, text: String, name_color: Color) -> void:
 
 func is_chat_active() -> bool:
 	return chat_is_open
+
+# --- Scoreboard ---
+
+const _SB_COLUMNS := ["#", "Name", "Kills", "Deaths", "K/D", "Acc%", "Streak", "Score"]
+const _SB_WIDTHS := [30, 100, 50, 50, 50, 50, 50, 60]
+
+func show_scoreboard(result_text: String) -> void:
+	# Hide normal HUD elements
+	crosshair.visible = false
+	round_label.visible = false
+	score_label.visible = false
+	kill_score_label.visible = false
+	timer_label.visible = false
+	player_list.visible = false
+	elimination_feed.visible = false
+	center_message.visible = false
+	
+	scoreboard_panel.visible = true
+	scoreboard_result.text = result_text
+	
+	# Build header row
+	for child in scoreboard_header.get_children():
+		child.queue_free()
+	for i in range(_SB_COLUMNS.size()):
+		var lbl = Label.new()
+		lbl.text = _SB_COLUMNS[i]
+		lbl.add_theme_font_size_override("font_size", 11)
+		lbl.add_theme_color_override("font_color", Color(0.6, 0.7, 0.8, 1.0))
+		lbl.custom_minimum_size.x = _SB_WIDTHS[i]
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		scoreboard_header.add_child(lbl)
+	
+	# Build player rows from scoreboard data
+	for child in scoreboard_rows.get_children():
+		child.queue_free()
+	
+	var board = GameState.get_scoreboard()
+	var mvp = GameState.get_mvp()
+	
+	for rank_idx in range(board.size()):
+		var entry = board[rank_idx]
+		var row = HBoxContainer.new()
+		
+		var is_me = entry.id == 0
+		var is_mvp = (not mvp.is_empty()) and entry.id == mvp.id
+		var row_color = Color(0.5, 1.0, 0.5, 1.0) if is_me else Color(0.85, 0.85, 0.85, 1.0)
+		if is_mvp and not is_me:
+			row_color = Color(1.0, 0.85, 0.3, 1.0)
+		
+		var values = [
+			str(rank_idx + 1),
+			entry.name + (" *" if is_mvp else ""),
+			str(entry.kills),
+			str(entry.deaths),
+			"%.1f" % entry.kd,
+			"%.0f" % entry.accuracy,
+			str(entry.best_streak),
+			str(entry.score)
+		]
+		
+		for i in range(values.size()):
+			var cell = Label.new()
+			cell.text = values[i]
+			cell.add_theme_font_size_override("font_size", 13)
+			cell.add_theme_color_override("font_color", row_color)
+			cell.custom_minimum_size.x = _SB_WIDTHS[i]
+			cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			row.add_child(cell)
+		
+		scoreboard_rows.add_child(row)
+	
+	# MVP line
+	if not mvp.is_empty():
+		scoreboard_mvp.text = "MVP: " + mvp.name + " (" + str(mvp.kills) + " kills, " + "%.0f" % mvp.accuracy + "% acc, " + str(mvp.best_streak) + " streak)"
+	else:
+		scoreboard_mvp.text = ""
+	
+	# Match duration
+	var duration = GameState.get_match_duration()
+	var mins = int(duration) / 60
+	var secs = int(duration) % 60
+	scoreboard_duration.text = "Match duration: " + str(mins) + "m " + str(secs) + "s"
 
 func add_event(msg: String) -> void:
 	if not event_log_container:

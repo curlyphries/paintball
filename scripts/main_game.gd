@@ -97,6 +97,7 @@ func spawn_player() -> void:
 	player.team = 0
 	player.eliminated.connect(_on_player_eliminated)
 	players_node.add_child(player)
+	GameState.register_player(0, "You")
 
 func _spawn_bots(count: int, start_id: int) -> void:
 	# Set map bounds per map for bot wander
@@ -115,6 +116,7 @@ func _spawn_bots(count: int, start_id: int) -> void:
 		bot.eliminated.connect(_on_bot_eliminated)
 		bots.append(bot)
 		players_node.add_child(bot)
+		GameState.register_player(bot.player_id, bot.bot_name)
 
 func _get_map_bounds() -> Array:
 	match GameSettings.selected_map:
@@ -209,6 +211,13 @@ func _get_name_by_id(id: int) -> String:
 func _on_round_ended(winner_team: int) -> void:
 	round_active = false
 	
+	# Record rounds survived for alive players
+	if not player.is_dead:
+		GameState.record_round_survived(0)
+	for bot in bots:
+		if not bot.is_dead:
+			GameState.record_round_survived(bot.player_id)
+	
 	if winner_team == 0:
 		hud.show_round_result("ROUND WON!")
 	else:
@@ -219,19 +228,19 @@ func _on_round_ended(winner_team: int) -> void:
 		start_round()
 
 func _on_match_ended(winner_team: int) -> void:
+	var result_text: String
 	if is_deathmatch:
 		var my_kills = GameState.get_kill_score(0)
-		if winner_team == 0:
-			hud.show_match_result("VICTORY! (" + str(my_kills) + " kills)", 0, 0)
-		else:
-			hud.show_match_result("DEFEAT! (" + str(my_kills) + " kills)", 0, 0)
+		result_text = "VICTORY!" if winner_team == 0 else "DEFEAT!"
+		result_text += " (" + str(my_kills) + " kills)"
 	else:
-		if winner_team == 0:
-			hud.show_match_result("VICTORY!", GameState.player_wins, GameState.bot_wins)
-		else:
-			hud.show_match_result("DEFEAT!", GameState.player_wins, GameState.bot_wins)
+		result_text = "VICTORY!" if winner_team == 0 else "DEFEAT!"
+		result_text += "\n" + str(GameState.player_wins) + " - " + str(GameState.bot_wins)
 	
-	await get_tree().create_timer(5.0).timeout
+	# Show the end-of-match scoreboard
+	hud.show_scoreboard(result_text)
+	
+	await get_tree().create_timer(10.0).timeout
 	
 	if is_networked:
 		if game_sync:

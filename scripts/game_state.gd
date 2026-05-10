@@ -12,6 +12,7 @@ signal player_eliminated(victim_id: int, killer_id: int)
 signal score_updated(player_score: int, bot_score: int)
 signal time_updated(seconds_remaining: float)
 signal kill_score_updated(scores: Dictionary)
+signal stats_updated()
 
 # Constants
 const COUNTDOWN_TIME := 3.0
@@ -31,6 +32,12 @@ var time_limit_enabled := false
 
 # Deathmatch scoring — kill counts per player/bot ID
 var kill_scores: Dictionary = {}
+
+# Match stats per player/bot ID
+# Each entry: { kills, deaths, shots_fired, shots_hit, streak, best_streak, rounds_survived, name }
+var match_stats: Dictionary = {}
+var _match_start_time := 0.0
+var _match_elapsed := 0.0
 
 # Weapon data
 var weapons: Dictionary = {
@@ -59,6 +66,9 @@ func start_match() -> void:
 	player_wins = 0
 	bot_wins = 0
 	kill_scores.clear()
+	match_stats.clear()
+	_match_start_time = Time.get_ticks_msec() / 1000.0
+	_match_elapsed = 0.0
 	match_phase = MatchPhase.WAITING
 	
 	# Configure time limit from settings
@@ -82,6 +92,17 @@ func register_elimination(victim_id: int, killer_id: int) -> void:
 		return
 	
 	player_eliminated.emit(victim_id, killer_id)
+	
+	# Record stats
+	_ensure_stats(killer_id)
+	_ensure_stats(victim_id)
+	match_stats[killer_id].kills += 1
+	match_stats[killer_id].streak += 1
+	if match_stats[killer_id].streak > match_stats[killer_id].best_streak:
+		match_stats[killer_id].best_streak = match_stats[killer_id].streak
+	match_stats[victim_id].deaths += 1
+	match_stats[victim_id].streak = 0
+	stats_updated.emit()
 	
 	var mode = GameSettings.game_mode
 	
@@ -149,3 +170,83 @@ func is_match_over() -> bool:
 
 func get_kill_score(id: int) -> int:
 	return kill_scores.get(id, 0)
+
+# --- Stats helpers ---
+
+func _ensure_stats(id: int) -> void:
+	if not match_stats.has(id):
+		match_stats[id] = {
+			"kills": 0,
+			"deaths": 0,
+			"shots_fired": 0,
+			"shots_hit": 0,
+			"streak": 0,
+			"best_streak": 0,
+			"rounds_survived": 0,
+			"name": ""
+		}
+
+func register_player(id: int, player_name: String) -> void:
+	_ensure_stats(id)
+	match_stats[id].name = player_name
+
+func record_shot_fired(shooter_id: int) -> void:
+	_ensure_stats(shooter_id)
+	match_stats[shooter_id].shots_fired += 1
+
+func record_shot_hit(shooter_id: int) -> void:
+	_ensure_stats(shooter_id)
+	match_stats[shooter_id].shots_hit += 1
+
+func record_round_survived(id: int) -> void:
+	_ensure_stats(id)
+	match_stats[id].rounds_survived += 1
+
+func get_accuracy(id: int) -> float:
+	_ensure_stats(id)
+	var s = match_stats[id]
+	if s.shots_fired == 0:
+		return 0.0
+	return float(s.shots_hit) / float(s.shots_fired) * 100.0
+
+func get_kd_ratio(id: int) -> float:
+	_ensure_stats(id)
+	var s = match_stats[id]
+	if s.deaths == 0:
+		return float(s.kills)
+	return float(s.kills) / float(s.deaths)
+
+func get_match_duration() -> float:
+	_match_elapsed = Time.get_ticks_msec() / 1000.0 - _match_start_time
+	return _match_elapsed
+
+func get_scoreboard() -> Array:
+	# Returns sorted array of { id, name, kills, deaths, kd, accuracy, best_streak, rounds_survived, score }
+	var board: Array = []
+	for id in match_stats:
+		var s = match_stats[id]
+		var kd = get_kd_ratio(id)
+		var acc = get_accuracy(id)
+		# Score formula: kills * 100 + best_streak * 50 - deaths * 25 + rounds_survived * 30
+		var score = s.kills * 100 + s.best_streak * 50 - s.deaths * 25 + s.rounds_survived * 30
+		board.append({
+			"id": id,
+			"name": s.name if s.name != "" else ("Player" if id == 0 else "Bot"),
+			"kills": s.kills,
+			"deaths": s.deaths,
+			"kd": kd,
+			"accuracy": acc,
+			"shots_fired": s.shots_fired,
+			"shots_hit": s.shots_hit,
+			"best_streak": s.best_streak,
+			"rounds_survived": s.rounds_survived,
+			"score": score
+		})
+	board.sort_custom(func(a, b): return a.score > b.score)
+	return board
+
+func get_mvp() -> Dictionary:
+	var board = get_scoreboard()
+	if board.is_empty():
+		return {}
+	return board[0]

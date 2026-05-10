@@ -209,6 +209,69 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(1, 1, 1, 0.6)
 
+[node name="ScoreboardPanel" type="PanelContainer" parent="UI/HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -240.0
+offset_right = 340.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScoreboardVBox" type="VBoxContainer" parent="UI/HUD/ScoreboardPanel"]
+layout_mode = 2
+
+[node name="ScoreboardTitle" type="Label" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "MATCH OVER"
+horizontal_alignment = 1
+
+[node name="ScoreboardResult" type="Label" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1.0, 0.85, 0.3, 1.0)
+text = ""
+horizontal_alignment = 1
+
+[node name="ScoreboardSep" type="HSeparator" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+
+[node name="ScoreboardHeader" type="HBoxContainer" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+
+[node name="ScoreboardScroll" type="ScrollContainer" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScoreboardRows" type="VBoxContainer" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox/ScoreboardScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ScoreboardSep2" type="HSeparator" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+
+[node name="ScoreboardMVP" type="Label" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(1.0, 0.7, 0.2, 1.0)
+text = ""
+horizontal_alignment = 1
+
+[node name="ScoreboardDuration" type="Label" parent="UI/HUD/ScoreboardPanel/ScoreboardVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1.0)
+text = ""
+horizontal_alignment = 1
+
 [node name="ChatPanel" type="PanelContainer" parent="UI/HUD"]
 visible = false
 layout_mode = 1

@@ -273,6 +273,7 @@ func fire_at_target() -> void:
 	weapon.fire(origin, direction)
 
 func _on_weapon_fired(pos: Vector3, direction: Vector3, spd: float, color: Color) -> void:
+	GameState.record_shot_fired(player_id)
 	var projectile = preload("res://scenes/projectile.tscn").instantiate()
 	projectile.initialize(direction, spd, color, player_id, self)
 	# Add to tree first, then set position (global_position requires being in tree)

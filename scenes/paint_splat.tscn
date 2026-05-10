@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/paint_splat.gd" id="1_splat"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_splat"]
+size = Vector2(1, 1)
+
+[node name="PaintSplat" type="Node3D"]
+script = ExtResource("1_splat")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_splat")

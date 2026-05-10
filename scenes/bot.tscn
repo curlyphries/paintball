@@ -1,0 +1,45 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/bot.gd" id="1_bot"]
+[ext_resource type="Script" path="res://scripts/weapon.gd" id="2_weapon"]
+[ext_resource type="PackedScene" path="res://assets/models/character.glb" id="3_character"]
+[ext_resource type="PackedScene" path="res://assets/models/blaster_repeater.glb" id="4_blaster"]
+[ext_resource type="AudioStream" path="res://assets/audio/shoot_rifle.ogg" id="5_shoot"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_bot"]
+radius = 0.35
+height = 1.8
+
+[node name="Bot" type="CharacterBody3D" groups=["player", "bot"]]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_bot")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_bot")
+
+[node name="CharacterModel" parent="." instance=ExtResource("3_character")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+visible = false
+
+[node name="HeadMesh" type="MeshInstance3D" parent="."]
+visible = false
+
+[node name="SightRay" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+target_position = Vector3(0, 0, -30)
+collision_mask = 3
+
+[node name="Weapon3D" type="Node3D" parent="."]
+script = ExtResource("2_weapon")
+weapon_name = "rifle"
+
+[node name="WeaponModel" parent="Weapon3D" instance=ExtResource("4_blaster")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.3, 1.2, -0.3)
+
+[node name="ShootSound" type="AudioStreamPlayer3D" parent="."]
+stream = ExtResource("5_shoot")
+max_db = -5.0

@@ -56,8 +56,16 @@ func _ready() -> void:
 	weapon.fired.connect(_on_weapon_fired)
 	weapon.ammo_changed.connect(_on_ammo_changed)
 
+func _is_chat_active() -> bool:
+	var hud = get_node_or_null("/root/Main/UI/HUD")
+	if hud and hud.has_method("is_chat_active"):
+		return hud.is_chat_active()
+	return false
+
 func _input(event: InputEvent) -> void:
 	if is_dead:
+		return
+	if _is_chat_active():
 		return
 	
 	# Mouse look — always active when captured
@@ -79,6 +87,14 @@ func _input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
+		return
+	if _is_chat_active():
+		# Stop movement while chatting but still apply gravity
+		if not is_on_floor():
+			velocity.y -= GRAVITY * delta
+		velocity.x = 0
+		velocity.z = 0
+		move_and_slide()
 		return
 	
 	# Gravity
@@ -195,6 +211,8 @@ func respawn(spawn_position: Vector3) -> void:
 
 func _process(_delta: float) -> void:
 	if is_dead:
+		return
+	if _is_chat_active():
 		return
 	
 	# Melee range check — if a bot is right on top of us, next shot eliminates them

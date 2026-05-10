@@ -59,6 +59,9 @@ wss.on("connection", (ws, req) => {
       case "start_game":
         handleStartGame(ws);
         break;
+      case "chat_message":
+        handleChatMessage(ws, msg);
+        break;
       default:
         ws.send(JSON.stringify({ type: "error", message: `Unknown type: ${msg.type}` }));
     }
@@ -276,6 +279,26 @@ function handleStartGame(ws) {
   });
 
   console.log(`[Room ${code}] Game started with ${room.players.size} players`);
+}
+
+function handleChatMessage(ws, msg) {
+  const code = ws.roomCode;
+  if (!code) return;
+
+  const room = rooms.get(code);
+  if (!room) return;
+
+  // Sanitize and truncate message
+  const text = String(msg.text || "").replace(/[<>&"'`]/g, "").trim().slice(0, 200);
+  if (!text) return;
+
+  // Broadcast to all players in the room (including sender)
+  broadcastToRoom(room, {
+    type: "chat_message",
+    from: ws.playerId,
+    name: ws.playerName,
+    text,
+  });
 }
 
 // --- Utilities ---

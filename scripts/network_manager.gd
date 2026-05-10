@@ -13,6 +13,7 @@ signal game_started(players: Array)
 signal game_data_received(from_id: int, data: Dictionary)
 signal error_received(message: String)
 signal became_host
+signal chat_message_received(from_id: int, player_name: String, text: String)
 
 # Connection
 var ws: WebSocketPeer = null
@@ -94,6 +95,9 @@ func start_game() -> void:
 func send_game_data(data: Dictionary) -> void:
 	_send({ "type": "game_data", "data": data })
 
+func send_chat_message(text: String) -> void:
+	_send({ "type": "chat_message", "text": text })
+
 # --- Internal ---
 
 func _send(msg: Dictionary) -> void:
@@ -137,6 +141,8 @@ func _handle_message(text: String) -> void:
 			game_data_received.emit(msg.from, msg.data)
 		"error":
 			error_received.emit(msg.message)
+		"chat_message":
+			chat_message_received.emit(msg.from, msg.name, msg.text)
 		"room_closed":
 			_reset_state()
 			error_received.emit("Room closed: " + msg.get("reason", "unknown"))

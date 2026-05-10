@@ -209,6 +209,99 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(1, 1, 1, 0.6)
 
+[node name="ChatPanel" type="PanelContainer" parent="UI/HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -250.0
+offset_right = 360.0
+offset_bottom = -10.0
+grow_vertical = 0
+
+[node name="ChatVBox" type="VBoxContainer" parent="UI/HUD/ChatPanel"]
+layout_mode = 2
+
+[node name="ChatScroll" type="ScrollContainer" parent="UI/HUD/ChatPanel/ChatVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ChatMessages" type="VBoxContainer" parent="UI/HUD/ChatPanel/ChatVBox/ChatScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ChatInputRow" type="HBoxContainer" parent="UI/HUD/ChatPanel/ChatVBox"]
+layout_mode = 2
+
+[node name="ChatInput" type="LineEdit" parent="UI/HUD/ChatPanel/ChatVBox/ChatInputRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Type a message..."
+max_length = 200
+
+[node name="ChatSendBtn" type="Button" parent="UI/HUD/ChatPanel/ChatVBox/ChatInputRow"]
+layout_mode = 2
+text = "Send"
+
+[node name="HelpOverlay" type="PanelContainer" parent="UI/HUD"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -200.0
+offset_right = 220.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HelpContent" type="VBoxContainer" parent="UI/HUD/HelpOverlay"]
+layout_mode = 2
+
+[node name="HelpTitle" type="Label" parent="UI/HUD/HelpOverlay/HelpContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "CONTROLS"
+horizontal_alignment = 1
+
+[node name="HelpSeparator" type="HSeparator" parent="UI/HUD/HelpOverlay/HelpContent"]
+layout_mode = 2
+
+[node name="HelpText" type="RichTextLabel" parent="UI/HUD/HelpOverlay/HelpContent"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[table=2]
+[cell][color=yellow]WASD[/color][/cell][cell]Move[/cell]
+[cell][color=yellow]Mouse[/color][/cell][cell]Aim / Look[/cell]
+[cell][color=yellow]Left Click[/color][/cell][cell]Shoot[/cell]
+[cell][color=yellow]Shift[/color][/cell][cell]Sprint[/cell]
+[cell][color=yellow]Space[/color][/cell][cell]Jump[/cell]
+[cell][color=yellow]Ctrl[/color][/cell][cell]Crouch[/cell]
+[cell][color=yellow]R[/color][/cell][cell]Reload[/cell]
+[cell][color=yellow]V[/color][/cell][cell]Toggle 1st/3rd person[/cell]
+[cell][color=yellow]1-5[/color][/cell][cell]Select weapon[/cell]
+[cell][color=yellow]Scroll[/color][/cell][cell]Cycle weapons[/cell]
+[cell][color=yellow]T[/color][/cell][cell]Open chat[/cell]
+[cell][color=yellow]Enter[/color][/cell][cell]Send message / Close chat[/cell]
+[cell][color=yellow]Esc[/color][/cell][cell]Close chat / Release cursor[/cell]
+[cell][color=yellow]?[/color][/cell][cell]Toggle this help[/cell]
+[/table]"
+
+[node name="HelpCloseHint" type="Label" parent="UI/HUD/HelpOverlay/HelpContent"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1.0)
+text = "Press ? to close"
+horizontal_alignment = 1
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 0, 10, 0)
 light_energy = 1.2

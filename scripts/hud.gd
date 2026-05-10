@@ -11,6 +11,15 @@ extends Control
 @onready var timer_label: Label = $TimerLabel
 @onready var kill_score_label: Label = $KillScoreLabel
 @onready var mode_label: Label = $ModeLabel
+@onready var chat_panel: PanelContainer = $ChatPanel
+@onready var chat_messages: VBoxContainer = $ChatPanel/ChatVBox/ChatScroll/ChatMessages
+@onready var chat_scroll: ScrollContainer = $ChatPanel/ChatVBox/ChatScroll
+@onready var chat_input: LineEdit = $ChatPanel/ChatVBox/ChatInputRow/ChatInput
+@onready var chat_send_btn: Button = $ChatPanel/ChatVBox/ChatInputRow/ChatSendBtn
+@onready var help_overlay: PanelContainer = $HelpOverlay
+
+var chat_is_open := false
+const MAX_CHAT_MESSAGES := 50
 
 func _ready() -> void:
 	center_message.visible = false
@@ -38,6 +47,15 @@ func _ready() -> void:
 	timer.autostart = true
 	timer.timeout.connect(_refresh_player_list)
 	add_child(timer)
+	
+	# Chat setup
+	chat_panel.visible = false
+	help_overlay.visible = false
+	chat_input.text_submitted.connect(_on_chat_submitted)
+	chat_send_btn.pressed.connect(_on_chat_send_pressed)
+	
+	# Listen for network chat messages
+	NetworkManager.chat_message_received.connect(_on_network_chat_received)
 
 func update_ammo(current: int, max_ammo: int) -> void:
 	ammo_label.text = str(current) + " / " + str(max_ammo)
@@ -181,6 +199,100 @@ func _build_player_list(players_node: Node) -> void:
 			entry.add_theme_font_size_override("font_size", 12)
 			entry.add_theme_color_override("font_color", Color(1.0, 0.7, 0.7, 1.0))
 			player_list.add_child(entry)
+
+# --- Chat ---
+
+func _input(event: InputEvent) -> void:
+	# Toggle help overlay with ? (Shift+/)
+	if event.is_action_pressed("toggle_help"):
+		help_overlay.visible = not help_overlay.visible
+		get_viewport().set_input_as_handled()
+		return
+	
+	# Open chat with T (only when chat is closed and not typing)
+	if event.is_action_pressed("open_chat") and not chat_is_open:
+		_open_chat()
+		get_viewport().set_input_as_handled()
+		return
+	
+	# Close chat with Escape
+	if chat_is_open and event is InputEventKey and event.pressed:
+		if event.keycode == KEY_ESCAPE or event.physical_keycode == KEY_ESCAPE:
+			_close_chat()
+			get_viewport().set_input_as_handled()
+			return
+
+func _open_chat() -> void:
+	chat_is_open = true
+	chat_panel.visible = true
+	chat_input.grab_focus()
+	chat_input.text = ""
+	# Release mouse so player can type
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _close_chat() -> void:
+	chat_is_open = false
+	chat_input.release_focus()
+	# Re-capture mouse immediately
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	# Keep chat panel visible briefly to see messages, then auto-hide
+	await get_tree().create_timer(3.0).timeout
+	if not chat_is_open:
+		chat_panel.visible = false
+
+func _on_chat_submitted(text: String) -> void:
+	if text.strip_edges() == "":
+		_close_chat()
+		return
+	_send_chat(text.strip_edges())
+	chat_input.text = ""
+	_close_chat()
+
+func _on_chat_send_pressed() -> void:
+	var text = chat_input.text.strip_edges()
+	if text == "":
+		return
+	_send_chat(text)
+	chat_input.text = ""
+	_close_chat()
+
+func _send_chat(text: String) -> void:
+	var is_networked = NetworkManager.room_code != ""
+	if is_networked:
+		NetworkManager.send_chat_message(text)
+	else:
+		# Solo mode — show locally as "You"
+		_add_chat_message("You", text, Color(0.5, 0.8, 1.0))
+
+func _on_network_chat_received(from_id: int, player_name: String, text: String) -> void:
+	var color = Color(0.5, 0.8, 1.0) if from_id == NetworkManager.local_player_id else Color(1.0, 0.85, 0.5)
+	_add_chat_message(player_name, text, color)
+	# Auto-show chat panel briefly when a message arrives
+	if not chat_is_open:
+		chat_panel.visible = true
+		await get_tree().create_timer(5.0).timeout
+		if not chat_is_open:
+			chat_panel.visible = false
+
+func _add_chat_message(sender: String, text: String, name_color: Color) -> void:
+	var label = RichTextLabel.new()
+	label.bbcode_enabled = true
+	label.fit_content = true
+	label.scroll_active = false
+	label.bbcode_text = "[color=#" + name_color.to_html(false) + "]" + sender + ":[/color] " + text
+	label.add_theme_font_size_override("normal_font_size", 13)
+	chat_messages.add_child(label)
+	
+	# Cap message count
+	while chat_messages.get_child_count() > MAX_CHAT_MESSAGES:
+		chat_messages.get_child(0).queue_free()
+	
+	# Scroll to bottom
+	await get_tree().process_frame
+	chat_scroll.scroll_vertical = int(chat_scroll.get_v_scroll_bar().max_value)
+
+func is_chat_active() -> bool:
+	return chat_is_open
 
 func add_event(msg: String) -> void:
 	if not event_log_container:

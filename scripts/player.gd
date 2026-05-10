@@ -148,16 +148,48 @@ func take_hit(attacker_id: int) -> void:
 	# One hit elimination
 	die(attacker_id)
 
+const BODY_LINGER_TIME := 3.0
+
 func die(killer_id: int) -> void:
 	is_dead = true
-	visible = false
 	collision_shape.disabled = true
+	velocity = Vector3.ZERO
 	eliminated.emit(self, killer_id)
+	_play_death_animation()
+
+func _play_death_animation() -> void:
+	# Switch to third person so the player can see their body fall
+	character_model.visible = true
+	camera.position = Vector3(0.5, 1.5, 3.5)  # Pull camera back and up
+	
+	# Tilt the character model sideways (fall over)
+	var fall_dir = [-1.0, 1.0].pick_random()
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(character_model, "rotation:z", fall_dir * 1.5, 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(character_model, "position:y", -0.4, 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	var lurch = randf_range(-0.3, 0.3)
+	tween.tween_property(character_model, "position:z", lurch, 0.5).set_ease(Tween.EASE_IN)
+	
+	# Linger, then hide
+	await get_tree().create_timer(BODY_LINGER_TIME).timeout
+	if is_instance_valid(self) and is_dead:
+		visible = false
 
 func respawn(spawn_position: Vector3) -> void:
 	is_dead = false
 	visible = true
 	collision_shape.disabled = false
+	# Reset model from death animation
+	character_model.rotation = Vector3.ZERO
+	character_model.position = Vector3.ZERO
+	# Restore camera to the player's preferred mode
+	if is_first_person:
+		camera.position = Vector3(0, 0, 0)
+		character_model.visible = false
+	else:
+		camera.position = Vector3(0.5, 0.3, CAMERA_DISTANCE_TPS)
+		character_model.visible = true
 	global_position = spawn_position
 	velocity = Vector3.ZERO
 

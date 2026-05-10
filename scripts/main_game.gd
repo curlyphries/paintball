@@ -17,6 +17,11 @@ var is_deathmatch := false
 
 func _ready() -> void:
 	is_networked = NetworkManager.room_code != ""
+
+	# Solo: pick a map from the pool now (server picks for networked play).
+	# Always randomize — pool of 1 still picks that map; pool of N varies the match.
+	if not is_networked:
+		GameSettings.current_map = GameSettings.pick_random_from_pool()
 	
 	# Force deathmatch if no bots in non-networked team mode (rounds don't work solo with 0 enemies)
 	var bot_count_check = GameSettings.get_effective_bot_count()
@@ -72,8 +77,8 @@ func _load_map() -> void:
 	if existing_map:
 		existing_map.queue_free()
 	
-	# Load selected map
-	var map_path = GameSettings.get_map_scene_path()
+	# Load current map
+	var map_path = GameSettings.get_current_map_scene_path()
 	var map_scene = load(map_path)
 	if map_scene:
 		var map_instance = map_scene.instantiate()
@@ -119,7 +124,7 @@ func _spawn_bots(count: int, start_id: int) -> void:
 		GameState.register_player(bot.player_id, bot.bot_name)
 
 func _get_map_bounds() -> Array:
-	match GameSettings.selected_map:
+	match GameSettings.current_map:
 		"courtyard":
 			return [Vector3(-20, 0, -15), Vector3(20, 0, 15)]
 		"arena":

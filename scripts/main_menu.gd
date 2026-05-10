@@ -13,7 +13,8 @@ extends Control
 # --- Settings panel ---
 @onready var settings_panel: Control = $CenterPanel/SettingsPanel
 @onready var mode_option: OptionButton = $CenterPanel/SettingsPanel/VBox/ModeOption
-@onready var map_option: OptionButton = $CenterPanel/SettingsPanel/VBox/MapOption
+@onready var map_pool_container: VBoxContainer = $CenterPanel/SettingsPanel/VBox/MapPoolContainer
+@onready var rotation_option: OptionButton = $CenterPanel/SettingsPanel/VBox/RotationOption
 @onready var bots_check: CheckBox = $CenterPanel/SettingsPanel/VBox/BotsRow/BotsCheck
 @onready var bots_count_label: Label = $CenterPanel/SettingsPanel/VBox/BotsRow/BotsCountLabel
 @onready var bots_slider: HSlider = $CenterPanel/SettingsPanel/VBox/BotsSlider
@@ -25,6 +26,7 @@ extends Control
 # --- Lobby panel (shown after create/join) ---
 @onready var lobby_panel: Control = $CenterPanel/LobbyPanel
 @onready var room_code_label: Label = $CenterPanel/LobbyPanel/VBox/RoomCodeLabel
+@onready var pool_summary_label: Label = $CenterPanel/LobbyPanel/VBox/PoolSummary
 @onready var invite_link_input: LineEdit = $CenterPanel/LobbyPanel/VBox/InviteLinkRow/InviteLinkInput
 @onready var copy_btn: Button = $CenterPanel/LobbyPanel/VBox/InviteLinkRow/CopyButton
 @onready var player_list: VBoxContainer = $CenterPanel/LobbyPanel/VBox/PlayerListContainer
@@ -51,7 +53,6 @@ func _ready() -> void:
 	# Settings control signals
 	bots_check.toggled.connect(_on_bots_toggled)
 	bots_slider.value_changed.connect(_on_bots_slider_changed)
-	map_option.item_selected.connect(_on_map_selected)
 	
 	lobby_panel.visible = false
 	settings_panel.visible = false
@@ -86,16 +87,25 @@ func _populate_settings_controls() -> void:
 	mode_option.add_item("Capture the Flag", 2)
 	mode_option.selected = GameSettings.game_mode
 	
-	# Maps
-	map_option.clear()
-	var idx := 0
+	# Map pool — one checkbox per available map
+	for child in map_pool_container.get_children():
+		child.queue_free()
 	for key in GameSettings.AVAILABLE_MAPS:
-		map_option.add_item(GameSettings.AVAILABLE_MAPS[key].name, idx)
-		map_option.set_item_metadata(idx, key)
-		if key == GameSettings.selected_map:
-			map_option.selected = idx
-		idx += 1
+		var cb := CheckBox.new()
+		cb.text = GameSettings.AVAILABLE_MAPS[key].name
+		cb.set_meta("map_key", key)
+		cb.button_pressed = GameSettings.is_in_pool(key)
+		cb.toggled.connect(_on_map_pool_toggled)
+		map_pool_container.add_child(cb)
+	_update_map_pool_constraint()
 	_update_map_description()
+
+	# Rotation mode
+	rotation_option.clear()
+	rotation_option.add_item("Vote", GameSettings.RotationMode.VOTE)
+	rotation_option.add_item("Random", GameSettings.RotationMode.RANDOM)
+	rotation_option.add_item("Ordered", GameSettings.RotationMode.ORDERED)
+	rotation_option.selected = GameSettings.rotation_mode
 	
 	# Bots
 	bots_check.button_pressed = GameSettings.bots_enabled
@@ -125,19 +135,46 @@ func _on_bots_toggled(pressed: bool) -> void:
 func _on_bots_slider_changed(value: float) -> void:
 	bots_count_label.text = "Count: " + str(int(value))
 
-func _on_map_selected(idx: int) -> void:
+func _on_map_pool_toggled(_pressed: bool) -> void:
+	_update_map_pool_constraint()
 	_update_map_description()
 
+func _update_map_pool_constraint() -> void:
+	# Enforce: at least one map must remain checked. If only one is checked,
+	# disable that checkbox so the user cannot uncheck the last one.
+	var checked: Array[CheckBox] = []
+	for child in map_pool_container.get_children():
+		if child is CheckBox and child.button_pressed:
+			checked.append(child)
+	var only_one := checked.size() == 1
+	for child in map_pool_container.get_children():
+		if child is CheckBox:
+			child.disabled = only_one and child.button_pressed
+
+func _selected_map_keys() -> Array[String]:
+	var keys: Array[String] = []
+	for child in map_pool_container.get_children():
+		if child is CheckBox and child.button_pressed:
+			keys.append(str(child.get_meta("map_key")))
+	return keys
+
 func _update_map_description() -> void:
-	var key = map_option.get_item_metadata(map_option.selected)
-	if key and GameSettings.AVAILABLE_MAPS.has(key):
-		map_desc_label.text = GameSettings.AVAILABLE_MAPS[key].description
+	var keys := _selected_map_keys()
+	if keys.size() == 1 and GameSettings.AVAILABLE_MAPS.has(keys[0]):
+		map_desc_label.text = GameSettings.AVAILABLE_MAPS[keys[0]].description
 	else:
-		map_desc_label.text = ""
+		map_desc_label.text = "%d maps in pool" % keys.size()
 
 func _apply_settings() -> void:
 	GameSettings.game_mode = mode_option.selected as GameSettings.GameMode
-	GameSettings.selected_map = map_option.get_item_metadata(map_option.selected)
+	var pool := _selected_map_keys()
+	if pool.is_empty():
+		# Constraint should prevent this, but be defensive.
+		pool.append("warehouse")
+	GameSettings.map_pool.assign(pool)
+	if not GameSettings.is_in_pool(GameSettings.current_map):
+		GameSettings.current_map = pool[0]
+	GameSettings.rotation_mode = rotation_option.selected
 	GameSettings.bots_enabled = bots_check.button_pressed
 	GameSettings.bot_count = int(bots_slider.value)
 	var tl_idx = time_limit_option.selected
@@ -264,7 +301,14 @@ func _show_lobby(code: String) -> void:
 	room_code_label.text = code
 	invite_link_input.text = _get_invite_url(code)
 	start_now_btn.visible = NetworkManager.is_host
+	_refresh_pool_summary()
 	_refresh_player_list()
+
+func _refresh_pool_summary() -> void:
+	pool_summary_label.text = "Pool: %s · Mode: %s" % [
+		GameSettings.get_pool_summary(),
+		GameSettings.get_rotation_mode_name(),
+	]
 
 func _show_menu() -> void:
 	lobby_panel.visible = false

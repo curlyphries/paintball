@@ -35,7 +35,7 @@ func _ready() -> void:
 	event_log_container = $EventLog
 	
 	# Show mode and map info
-	mode_label.text = GameSettings.get_mode_name() + " | " + GameSettings.get_map_name()
+	mode_label.text = GameSettings.get_mode_name() + " | " + GameSettings.get_current_map_name()
 	
 	# Configure HUD for game mode
 	var is_dm = GameSettings.game_mode == GameSettings.GameMode.DEATHMATCH

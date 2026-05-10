@@ -181,9 +181,19 @@ custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1.0)
-text = "MAP"
+text = "MAP POOL"
 
-[node name="MapOption" type="OptionButton" parent="CenterPanel/SettingsPanel/VBox"]
+[node name="MapPoolContainer" type="VBoxContainer" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="RotationLabel" type="Label" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1.0)
+text = "ROTATION MODE"
+
+[node name="RotationOption" type="OptionButton" parent="CenterPanel/SettingsPanel/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 
@@ -271,6 +281,14 @@ theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(0.2, 1.0, 0.4, 1.0)
 text = "XXXXXX"
 horizontal_alignment = 1
+
+[node name="PoolSummary" type="Label" parent="CenterPanel/LobbyPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 1.0)
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="InviteLinkRow" type="HBoxContainer" parent="CenterPanel/LobbyPanel/VBox"]
 layout_mode = 2

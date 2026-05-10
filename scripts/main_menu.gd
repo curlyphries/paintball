@@ -191,13 +191,24 @@ func _refresh_player_list() -> void:
 func _wait_for_connection() -> bool:
 	var connected = false
 	var errored = false
+	
+	# Already connected from a previous session?
+	if NetworkManager._connected:
+		return true
+	
 	NetworkManager.connected_to_server.connect(func(): connected = true, CONNECT_ONE_SHOT)
 	NetworkManager.error_received.connect(func(_m): errored = true, CONNECT_ONE_SHOT)
+	
 	var elapsed := 0.0
-	while not connected and not errored and elapsed < 5.0:
+	while not connected and not errored and elapsed < 8.0:
+		# Also check manager state directly (signal may have fired before lambda attached)
+		if NetworkManager._connected:
+			connected = true
+			break
 		await get_tree().create_timer(0.1).timeout
 		elapsed += 0.1
-	if not connected:
+	
+	if not connected and not NetworkManager._connected:
 		status_label.text = "Connection failed. Check your internet."
 		_enable_buttons()
 		return false

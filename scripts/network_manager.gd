@@ -42,6 +42,7 @@ func _process(_delta: float) -> void:
 		WebSocketPeer.STATE_OPEN:
 			if not _connected:
 				_connected = true
+				print("[Network] Connected!")
 				connected_to_server.emit()
 			while ws.get_available_packet_count() > 0:
 				var packet = ws.get_packet()
@@ -49,6 +50,9 @@ func _process(_delta: float) -> void:
 		WebSocketPeer.STATE_CLOSING:
 			pass
 		WebSocketPeer.STATE_CLOSED:
+			var code = ws.get_close_code()
+			var reason = ws.get_close_reason()
+			print("[Network] Closed. Code: ", code, " Reason: ", reason)
 			if _connected:
 				_connected = false
 				disconnected_from_server.emit()
@@ -57,11 +61,14 @@ func _process(_delta: float) -> void:
 func connect_to_relay(url: String = "") -> void:
 	if url != "":
 		relay_url = url
+	print("[Network] Connecting to: ", relay_url)
 	ws = WebSocketPeer.new()
 	var err = ws.connect_to_url(relay_url)
 	if err != OK:
-		push_error("WebSocket connection failed: " + str(err))
+		push_error("[Network] WebSocket connect_to_url failed: " + str(err))
 		error_received.emit("Failed to connect to server")
+	else:
+		print("[Network] WebSocket connect initiated (waiting for handshake)")
 
 func disconnect_from_relay() -> void:
 	if ws:

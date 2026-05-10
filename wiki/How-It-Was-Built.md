@@ -8,7 +8,7 @@ This page is a transparent look at the process: what vibecoding actually looks l
 
 ## What is Vibecoding?
 
-Vibecoding (sometimes called "vibe-driven development") is a style of programming where the human provides intent, direction, and creative decisions while an AI assistant handles the implementation details. Instead of writing every line by hand, you describe what you want at a high level and the AI writes, debugs, and iterates on the code.
+Vibecoding (sometimes called "vibe-driven development") is a style of programming where the developer provides intent, direction, and creative decisions while an AI assistant handles the implementation details. Instead of writing every line by hand, you describe what you want at a high level and the AI writes, debugs, and iterates on the code.
 
 Think of it as pair programming where your partner types very fast and knows every API by heart, but you're the one deciding what to build and when something feels right.
 
@@ -34,10 +34,10 @@ This stack was chosen for simplicity and self-hostability. No Unity, no Unreal, 
 
 ### The Workflow
 
-1. **Human decides what to build** — "Let's add a shotgun" or "We need a scoreboard at the end of matches"
+1. **curlyphries decides what to build** — "Let's add a shotgun" or "We need a scoreboard at the end of matches"
 2. **AI reads the existing code** — understands the codebase structure, patterns, and conventions
 3. **AI proposes and implements** — writes the code, adds to correct files, follows existing patterns
-4. **Human reviews and play-tests** — runs the game, identifies issues
+4. **curlyphries reviews and play-tests** — runs the game, identifies issues
 5. **Iterate** — "The bots are too accurate" or "Chat input should block shooting"
 6. **Export, deploy, push** — AI handles the full deploy pipeline
 
@@ -50,7 +50,7 @@ This stack was chosen for simplicity and self-hostability. No Unity, no Unreal, 
 - Set up Docker deployment, nginx config, CI/CD pipeline
 - Created this documentation and wiki
 
-### What the Human Did
+### What curlyphries Did
 
 - Decided the game concept (paintball, browser-based, self-hostable)
 - Chose game mechanics (1-hit kill, room codes, 5 weapons)
@@ -143,11 +143,11 @@ Here's roughly how the game evolved through vibecoding sessions:
 - **Knowledge breadth** — the AI knows Godot APIs, Node.js, Docker, nginx, GitHub Actions, etc. without context-switching
 - **Iterative debugging** — describe a bug, the AI traces it through the code and fixes the root cause
 
-### What Required Human Judgment
+### What Required curlyphries' Judgment
 
 - **Game feel** — "is the shotgun spread right?" requires actually playing the game
 - **Feature prioritization** — knowing what matters for the game experience
-- **Creative direction** — paint splatters, death animations, gold MVP highlight — these were human decisions
+- **Creative direction** — paint splatters, death animations, gold MVP highlight — these were curlyphries' decisions
 - **Quality assessment** — "this is good enough" vs "this needs more work"
 - **Architecture decisions** — client-authoritative vs server-authoritative, for instance
 
@@ -156,7 +156,7 @@ Here's roughly how the game evolved through vibecoding sessions:
 - **Scene editing** — `.tscn` files are text-based in Godot 4, which is great for AI, but visual layout adjustments sometimes need the editor
 - **Play-testing** — the AI can't press play and evaluate how the game feels
 - **Asset creation** — using pre-made assets (Kenney.nl) because AI can't model 3D characters
-- **Performance tuning** — needed human to assess frame rate and feel on real hardware
+- **Performance tuning** — needed curlyphries to assess frame rate and feel on real hardware
 
 ---
 
@@ -199,6 +199,6 @@ The [Development Guide](Development-Guide) has step-by-step instructions for:
 
 ## Final Thoughts
 
-Vibecoding isn't "AI wrote a game by itself." It's a human with a vision directing an AI that can type code faster than any human. The human still makes every meaningful decision — the AI just handles the translation from intent to implementation.
+Vibecoding isn't "AI wrote a game by itself." It's curlyphries with a vision directing an AI that can type code faster than any person. curlyphries still makes every meaningful decision — the AI just handles the translation from intent to implementation.
 
 The result is a fully functional, self-hostable, multiplayer 3D game built in a fraction of the time it would normally take. And if you're reading this wiki, you have everything you need to understand, host, and modify it.

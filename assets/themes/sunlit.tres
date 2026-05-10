@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="MapTheme" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/map_theme.gd" id="1_theme"]
+
+[resource]
+script = ExtResource("1_theme")
+theme_name = "sunlit"
+floor_color = Color(0.50, 0.42, 0.30, 1)
+wall_primary = Color(0.78, 0.68, 0.50, 1)
+wall_accent = Color(0.90, 0.75, 0.55, 1)
+cover_color = Color(0.85, 0.40, 0.25, 1)
+landmark_color = Color(0.30, 0.55, 0.30, 1)
+accent_color = Color(0.90, 0.45, 0.25, 1)
+emission_color = Color(0.20, 0.85, 0.95, 1)
+emission_energy = 1.2
+sky_top = Color(0.30, 0.65, 0.95, 1)
+sky_horizon = Color(0.85, 0.78, 0.65, 1)
+ground_horizon = Color(0.55, 0.45, 0.30, 1)
+ground_bottom = Color(0.30, 0.25, 0.18, 1)
+light_color = Color(1.00, 0.95, 0.78, 1)
+light_energy = 1.7
+fog_color = Color(0.85, 0.78, 0.60, 1)
+fog_density = 0.003

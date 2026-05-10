@@ -17,6 +17,12 @@ var is_deathmatch := false
 
 func _ready() -> void:
 	is_networked = NetworkManager.room_code != ""
+	
+	# Force deathmatch if no bots in non-networked team mode (rounds don't work solo with 0 enemies)
+	var bot_count_check = GameSettings.get_effective_bot_count()
+	if not is_networked and bot_count_check == 0 and GameSettings.game_mode != GameSettings.GameMode.DEATHMATCH:
+		GameSettings.game_mode = GameSettings.GameMode.DEATHMATCH
+	
 	is_deathmatch = GameSettings.game_mode == GameSettings.GameMode.DEATHMATCH
 	
 	# Load the selected map dynamically
@@ -121,6 +127,7 @@ func _get_map_bounds() -> Array:
 
 func start_round() -> void:
 	round_active = false
+	GameState.start_round()
 	
 	# Reset alive lists
 	GameState.players_alive = [0]

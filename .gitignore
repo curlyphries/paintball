@@ -1,15 +1,17 @@
+# Godot build/import cache
+.godot/
 
-.DS_Store
-.env
-# Environment
+# HTML5 export output (built locally)
 export/web/*
 !export/web/.gitkeep
-.godot/
-# Godot build/import cache
-# HTML5 export output (built locally)
-launch.sh
+
 # Node modules
-# OS files
 server/node_modules/
 server/package-lock.json
+
+# Environment
+.env
+
+# OS files
+.DS_Store
 Thumbs.db

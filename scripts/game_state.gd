@@ -59,6 +59,7 @@ func start_match() -> void:
 	player_wins = 0
 	bot_wins = 0
 	kill_scores.clear()
+	match_phase = MatchPhase.WAITING
 	
 	# Configure time limit from settings
 	if GameSettings.time_limit_minutes > 0:
@@ -67,8 +68,6 @@ func start_match() -> void:
 	else:
 		time_limit_enabled = false
 		time_remaining = 0.0
-	
-	start_round()
 
 func start_round() -> void:
 	current_round += 1
@@ -94,13 +93,18 @@ func register_elimination(victim_id: int, killer_id: int) -> void:
 		kill_score_updated.emit(kill_scores)
 	else:
 		# Team vs Team / CTF — round-based elimination
+		var was_player = victim_id in players_alive
+		var was_bot = victim_id in bots_alive
 		players_alive.erase(victim_id)
 		bots_alive.erase(victim_id)
 		
-		if players_alive.is_empty():
-			end_round(1)  # Bots win
-		elif bots_alive.is_empty():
-			end_round(0)  # Player wins
+		# Only check round end if both teams had members at round start
+		if was_player and players_alive.is_empty() and not bots_alive.is_empty():
+			end_round(1)  # Bots win — all players eliminated
+		elif was_bot and bots_alive.is_empty() and not players_alive.is_empty():
+			end_round(0)  # Player wins — all bots eliminated
+		elif players_alive.is_empty() and bots_alive.is_empty():
+			end_round(0)  # Draw — give to player
 
 func end_round(winner_team: int) -> void:
 	match_phase = MatchPhase.ROUND_OVER

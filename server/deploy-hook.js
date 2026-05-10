@@ -26,7 +26,18 @@ const server = http.createServer((req, res) => {
   }
 
   let body = "";
-  req.on("data", (chunk) => { body += chunk; });
+  let bodySize = 0;
+  const MAX_BODY = 4096; // 4KB max
+  req.on("data", (chunk) => {
+    bodySize += chunk.length;
+    if (bodySize > MAX_BODY) {
+      res.writeHead(413);
+      res.end("Payload too large");
+      req.destroy();
+      return;
+    }
+    body += chunk;
+  });
   req.on("end", () => {
     console.log(`[Deploy] Triggered at ${new Date().toISOString()}`);
 

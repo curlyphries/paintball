@@ -6,14 +6,31 @@ const MAX_PLAYERS_PER_ROOM = 8;
 // Room storage: code -> { players: Map<ws, playerInfo>, host: ws, state: string }
 const rooms = new Map();
 
-const wss = new WebSocketServer({ port: PORT });
+const MAX_CONNECTIONS_PER_IP = 5;
+const MAX_ROOMS_PER_IP = 3;
+const ipConnections = new Map(); // ip -> count
+const ipRoomCreations = new Map(); // ip -> { count, resetAt }
 
-console.log(`[Relay] Paintball Arena relay server running on ws://0.0.0.0:${PORT}`);
+const wss = new WebSocketServer({ host: "127.0.0.1", port: PORT, maxPayload: 64 * 1024 });
 
-wss.on("connection", (ws) => {
+console.log(`[Relay] Paintball Arena relay server running on ws://127.0.0.1:${PORT}`);
+
+wss.on("connection", (ws, req) => {
+  const ip = req.headers["x-real-ip"] || req.socket.remoteAddress;
+  
+  // Per-IP connection limit
+  const conns = (ipConnections.get(ip) || 0) + 1;
+  if (conns > MAX_CONNECTIONS_PER_IP) {
+    ws.close(1008, "Too many connections");
+    console.log(`[Relay] Rejected connection from ${ip} (limit: ${MAX_CONNECTIONS_PER_IP})`);
+    return;
+  }
+  ipConnections.set(ip, conns);
+
   ws.isAlive = true;
   ws.roomCode = null;
   ws.playerId = null;
+  ws._ip = ip;
 
   ws.on("pong", () => { ws.isAlive = true; });
 
@@ -49,6 +66,12 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     handleLeaveRoom(ws);
+    // Decrement per-IP connection count
+    if (ws._ip) {
+      const c = (ipConnections.get(ws._ip) || 1) - 1;
+      if (c <= 0) ipConnections.delete(ws._ip);
+      else ipConnections.set(ws._ip, c);
+    }
   });
 });
 
@@ -68,14 +91,35 @@ wss.on("close", () => clearInterval(heartbeat));
 
 // --- Handlers ---
 
+function sanitizeName(name) {
+  return String(name || "").replace(/[<>&"'`]/g, "").trim().slice(0, 20) || "Player";
+}
+
+function checkRoomRateLimit(ip) {
+  const now = Date.now();
+  const entry = ipRoomCreations.get(ip);
+  if (!entry || now > entry.resetAt) {
+    ipRoomCreations.set(ip, { count: 1, resetAt: now + 60000 }); // 1 min window
+    return true;
+  }
+  if (entry.count >= MAX_ROOMS_PER_IP) return false;
+  entry.count++;
+  return true;
+}
+
 function handleCreateRoom(ws, msg) {
   if (ws.roomCode) {
     ws.send(JSON.stringify({ type: "error", message: "Already in a room" }));
     return;
   }
 
+  if (!checkRoomRateLimit(ws._ip)) {
+    ws.send(JSON.stringify({ type: "error", message: "Too many rooms created. Wait a minute." }));
+    return;
+  }
+
   const code = generateRoomCode();
-  const playerName = msg.name || "Host";
+  const playerName = sanitizeName(msg.name) || "Host";
 
   const room = {
     players: new Map(),
@@ -124,7 +168,7 @@ function handleJoinRoom(ws, msg) {
     return;
   }
 
-  const playerName = msg.name || `Player ${room.players.size + 1}`;
+  const playerName = sanitizeName(msg.name) || `Player ${room.players.size + 1}`;
   const playerId = room.players.size + 1;
 
   ws.roomCode = code;

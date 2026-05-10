@@ -50,6 +50,9 @@ func _ready() -> void:
 		# Single player — spawn bots
 		spawn_bots()
 	
+	# Add pause menu
+	_add_pause_menu()
+	
 	# Start match
 	GameState.start_match()
 	start_round()
@@ -189,17 +192,12 @@ func _on_match_ended(winner_team: int) -> void:
 	await get_tree().create_timer(5.0).timeout
 	
 	if is_networked:
-		# Clean up sync and return to lobby
 		if game_sync:
 			game_sync.cleanup()
 		NetworkManager.leave_room()
-		get_tree().change_scene_to_file("res://scenes/lobby.tscn")
-	else:
-		get_tree().reload_current_scene()
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+func _add_pause_menu() -> void:
+	var pause_scene = preload("res://scenes/pause_menu.tscn")
+	var pause_menu = pause_scene.instantiate()
+	$UI.add_child(pause_menu)

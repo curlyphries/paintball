@@ -26,21 +26,45 @@ func _ready() -> void:
 	NetworkManager.game_started.connect(_on_game_started)
 	NetworkManager.error_received.connect(_on_error)
 
+func _get_relay_url() -> String:
+	# 1. User typed something in the server field
+	var manual = server_input.text.strip_edges()
+	if manual != "":
+		return manual
+	# 2. In browser: derive from page origin (https://example.com/paintball -> wss://example.com/paintball/ws)
+	if OS.has_feature("web"):
+		var origin = JavaScriptBridge.eval("window.location.origin", true)
+		var path = JavaScriptBridge.eval("window.location.pathname.replace(/\\/[^\\/]*$/, '')", true)
+		var scheme = "wss" if str(origin).begins_with("https") else "ws"
+		var host = str(origin).replace("https://", "").replace("http://", "")
+		return scheme + "://" + host + str(path) + "/ws"
+	# 3. Fallback: project setting or localhost
+	if ProjectSettings.has_setting("network/relay_url"):
+		return ProjectSettings.get_setting("network/relay_url")
+	return "ws://localhost:9090"
+
 func _on_create_pressed() -> void:
 	var player_name = name_input.text.strip_edges()
 	if player_name == "":
 		player_name = "Host"
-	var server_url = server_input.text.strip_edges()
-	if server_url == "":
-		server_url = "ws://localhost:9090"
+	var server_url = _get_relay_url()
 	
-	status_label.text = "Connecting..."
+	status_label.text = "Connecting to " + server_url + "..."
 	create_btn.disabled = true
 	join_btn.disabled = true
 	
 	NetworkManager.connect_to_relay(server_url)
-	# Wait for connection, then create room
-	await NetworkManager.connected_to_server
+	# Wait with timeout
+	var connected = false
+	NetworkManager.connected_to_server.connect(func(): connected = true, CONNECT_ONE_SHOT)
+	NetworkManager.error_received.connect(func(_m): connected = false, CONNECT_ONE_SHOT)
+	await get_tree().create_timer(5.0).timeout
+	if not connected and not NetworkManager._connected:
+		status_label.text = "Connection timed out. Check server URL."
+		_reset_ui()
+		return
+	if not NetworkManager._connected:
+		return
 	NetworkManager.create_room(player_name)
 
 func _on_join_pressed() -> void:
@@ -51,16 +75,23 @@ func _on_join_pressed() -> void:
 	if code.length() != 6:
 		status_label.text = "Enter a 6-character room code"
 		return
-	var server_url = server_input.text.strip_edges()
-	if server_url == "":
-		server_url = "ws://localhost:9090"
+	var server_url = _get_relay_url()
 	
-	status_label.text = "Connecting..."
+	status_label.text = "Connecting to " + server_url + "..."
 	create_btn.disabled = true
 	join_btn.disabled = true
 	
 	NetworkManager.connect_to_relay(server_url)
-	await NetworkManager.connected_to_server
+	var connected = false
+	NetworkManager.connected_to_server.connect(func(): connected = true, CONNECT_ONE_SHOT)
+	NetworkManager.error_received.connect(func(_m): connected = false, CONNECT_ONE_SHOT)
+	await get_tree().create_timer(5.0).timeout
+	if not connected and not NetworkManager._connected:
+		status_label.text = "Connection timed out. Check server URL."
+		_reset_ui()
+		return
+	if not NetworkManager._connected:
+		return
 	NetworkManager.join_room(code, player_name)
 
 func _on_start_pressed() -> void:

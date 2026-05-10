@@ -10,31 +10,35 @@ Built with **Godot 4.6** + a lightweight **Node.js WebSocket relay**.
 - Docker + Docker Compose
 - Godot 4.6+ (for exporting the game)
 
-### 1. Clone and configure
+### 1. Clone and deploy
 
 ```bash
-git clone <your-repo-url> paintball-arena
-cd paintball-arena
+git clone https://github.com/curlyphries/paintball.git
+cd paintball
+./deploy.sh
+```
+
+The deploy script will:
+- Find your Godot installation (native, flatpak, or snap)
+- Verify web export templates are installed
+- Export the game to HTML5
+- Start Docker (relay server + nginx)
+
+Game is live at `http://localhost:8080`. Players visit the URL, create/join rooms with 6-character codes.
+
+### Manual steps (if deploy.sh doesn't fit your setup)
+
+```bash
+# 1. Export game
+godot --headless --path . --export-release "Web" export/web/index.html
+
+# 2. Configure
 cp .env.example .env
-# Edit .env — set RELAY_URL to your public server address
-```
+# Edit .env if needed (ports, relay URL)
 
-### 2. Export the game to HTML5
-
-Open in Godot Editor, then **Project → Export → Web → Export Project** to `export/web/index.html`.
-
-Or via command line:
-```bash
-godot --headless --export-release "Web" export/web/index.html
-```
-
-### 3. Launch
-
-```bash
+# 3. Start
 docker-compose up -d
 ```
-
-Game is now live at `http://your-server:8080`. Players visit the URL, create/join rooms with 6-character codes.
 
 ### Without Docker
 
@@ -42,9 +46,19 @@ Game is now live at `http://your-server:8080`. Players visit the URL, create/joi
 # Start relay server
 cd server && npm install && npm start
 
-# Serve the export/web/ folder with any static file server
-# (must include COOP/COEP headers — see nginx.conf)
+# Serve export/web/ with any static file server that supports:
+# - Cross-Origin-Opener-Policy: same-origin
+# - Cross-Origin-Embedder-Policy: require-corp
+# (required for SharedArrayBuffer / WASM threads)
+# See nginx.conf for reference config.
 ```
+
+### Behind a reverse proxy (HTTPS)
+
+If you're hosting behind nginx/caddy with SSL:
+- Proxy `/your-path/ws` → `http://127.0.0.1:9090` (WebSocket upgrade)
+- Serve `export/web/` at `/your-path` with COOP/COEP headers
+- The game auto-detects the relay URL from the page origin — no config needed
 
 ## How It Works
 
@@ -119,15 +133,20 @@ For production with HTTPS, put a reverse proxy (nginx/caddy) in front and use `w
 ## Development
 
 ```bash
-# Run relay server in dev mode (auto-restart)
+# Run relay server in dev mode (auto-restart on file change)
 cd server && npm run dev
 
 # Open game in Godot editor
 godot --editor project.godot
 
-# Play locally (skips lobby, plays with bots)
+# Play locally (single-player with bots, no server needed)
 godot --path .
 ```
+
+The game auto-detects its environment:
+- **Browser**: derives WebSocket URL from page origin (works with any domain/path)
+- **Desktop**: uses `network/relay_url` from `project.godot` (default: `ws://localhost:9090`)
+- **Lobby server field**: manual override for testing
 
 ## Assets
 

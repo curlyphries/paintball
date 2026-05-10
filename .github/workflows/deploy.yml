@@ -67,6 +67,7 @@ jobs:
 
   # ──────────────────────────────────────────────
   # Step 2: Deploy to curlyphries.net (main only)
+  # Triggers a webhook that the server listens for
   # ──────────────────────────────────────────────
   deploy:
     needs: export
@@ -74,36 +75,15 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment: production
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Download export
-        uses: actions/download-artifact@v4
-        with:
-          name: paintball-web
-          path: export/web/
-
-      - name: Deploy to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          source: "export/web/*"
-          target: ${{ secrets.DEPLOY_PATH }}
-          strip_components: 2
-
-      - name: Update server code & restart relay
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            cd ${{ secrets.DEPLOY_PATH }} || exit 1
-            git pull origin main
-            cd server && npm ci --production
-            sudo systemctl restart paintball-relay
-            echo "Deploy complete: $(date)"
+      - name: Trigger deploy webhook
+        run: |
+          curl -sf -X POST \
+            -H "Authorization: Bearer ${{ secrets.DEPLOY_WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"${{ github.sha }}","artifact":"paintball-web"}' \
+            "${{ secrets.DEPLOY_WEBHOOK_URL }}" \
+          && echo "Deploy triggered successfully" \
+          || echo "::warning::Deploy webhook failed — server may need manual update"
 
   # ──────────────────────────────────────────────
   # Step 3: Docker images to GHCR (tags only)

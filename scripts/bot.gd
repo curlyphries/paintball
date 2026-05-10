@@ -32,6 +32,12 @@ var wander_timer := 0.0
 var strafe_dir := 1.0  # 1 or -1 for strafing while shooting
 var strafe_timer := 0.0
 
+# Vision cache — avoid redundant raycasts per frame
+var _vision_cached := false
+var _can_see := false
+var _vision_check_timer := 0.0
+const VISION_CHECK_INTERVAL := 0.15  # Check 6-7 times/sec, not every frame
+
 # Map bounds (warehouse)
 const MAP_MIN := Vector3(-18, 0, -13)
 const MAP_MAX := Vector3(18, 0, 13)
@@ -67,6 +73,16 @@ func _physics_process(delta: float) -> void:
 	# Update fire cooldown
 	if fire_cooldown > 0:
 		fire_cooldown -= delta
+	
+	# Refresh vision cache at throttled rate
+	_vision_check_timer -= delta
+	if _vision_check_timer <= 0:
+		_vision_check_timer = VISION_CHECK_INTERVAL
+		_vision_cached = true
+		find_target()
+		_can_see = _raycast_check()
+	else:
+		_vision_cached = true
 	
 	# State machine
 	match state:
@@ -182,15 +198,19 @@ func find_target() -> void:
 			target = p
 
 func can_see_player() -> bool:
+	# Use cached result if available (refreshed at VISION_CHECK_INTERVAL)
+	if _vision_cached:
+		return _can_see
+	# Fallback for first frame
 	find_target()
+	return _raycast_check()
+
+func _raycast_check() -> bool:
 	if target == null:
 		return false
-	
-	# Raycast to player
 	var direction = (target.global_position + Vector3.UP * 1.0 - global_position - Vector3.UP * 1.5).normalized()
 	sight_ray.target_position = direction * 30.0
 	sight_ray.force_raycast_update()
-	
 	if sight_ray.is_colliding():
 		var collider = sight_ray.get_collider()
 		if collider == target:

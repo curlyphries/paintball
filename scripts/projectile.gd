@@ -12,14 +12,22 @@ var spawn_delay := 0.05  # Brief delay before collision enabled
 @onready var mesh: MeshInstance3D = $MeshInstance3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 
+# Material cache — shared across all projectiles by color key
+static var _mat_cache: Dictionary = {}
+
 func _ready() -> void:
-	# Set paintball color
-	var mat = StandardMaterial3D.new()
-	mat.albedo_color = paint_color
-	mat.emission_enabled = true
-	mat.emission = paint_color
-	mat.emission_energy_multiplier = 2.0
-	mesh.material_override = mat
+	# Reuse material by color to avoid creating thousands of materials
+	var key = "%d_%d_%d" % [int(paint_color.r * 255), int(paint_color.g * 255), int(paint_color.b * 255)]
+	if _mat_cache.has(key):
+		mesh.material_override = _mat_cache[key]
+	else:
+		var mat = StandardMaterial3D.new()
+		mat.albedo_color = paint_color
+		mat.emission_enabled = true
+		mat.emission = paint_color
+		mat.emission_energy_multiplier = 2.0
+		_mat_cache[key] = mat
+		mesh.material_override = mat
 	
 	# Disable collision briefly so we don't hit the shooter
 	collision_shape.disabled = true

@@ -57,6 +57,11 @@ const TIME_LIMIT_OPTIONS: Array = [0, 3, 5, 10, 15, 30]
 # --- Round settings (for TEAM_VS_TEAM) ---
 var rounds_to_win: int = 3
 
+# --- Audio settings ---
+var master_volume: float = 1.0  # 0.0 to 1.0
+const MIN_VOLUME_DB: float = -60.0  # Muted
+const MAX_VOLUME_DB: float = 0.0   # Full volume
+
 # --- Helpers ---
 
 func get_current_map_scene_path() -> String:
@@ -125,6 +130,15 @@ func get_mode_name() -> String:
 func get_effective_bot_count() -> int:
 	return bot_count if bots_enabled else 0
 
+func apply_volume() -> void:
+	# Convert linear 0.0-1.0 to decibel scale
+	var volume_db: float
+	if master_volume <= 0.0:
+		volume_db = MIN_VOLUME_DB
+	else:
+		volume_db = lerp(MIN_VOLUME_DB, MAX_VOLUME_DB, master_volume)
+	AudioServer.set_bus_volume_db(0, volume_db)  # 0 is Master bus
+
 func reset_to_defaults() -> void:
 	game_mode = GameMode.TEAM_VS_TEAM
 	bot_count = 3
@@ -134,3 +148,5 @@ func reset_to_defaults() -> void:
 	rotation_mode = RotationMode.VOTE
 	time_limit_minutes = 5
 	rounds_to_win = 3
+	master_volume = 1.0
+	apply_volume()

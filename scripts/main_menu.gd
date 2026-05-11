@@ -19,6 +19,8 @@ extends Control
 @onready var bots_count_label: Label = $CenterPanel/SettingsPanel/VBox/BotsRow/BotsCountLabel
 @onready var bots_slider: HSlider = $CenterPanel/SettingsPanel/VBox/BotsSlider
 @onready var time_limit_option: OptionButton = $CenterPanel/SettingsPanel/VBox/TimeLimitOption
+@onready var volume_slider: HSlider = $CenterPanel/SettingsPanel/VBox/VolumeRow/VolumeSlider
+@onready var volume_value_label: Label = $CenterPanel/SettingsPanel/VBox/VolumeRow/VolumeValueLabel
 @onready var map_desc_label: Label = $CenterPanel/SettingsPanel/VBox/MapDesc
 @onready var confirm_btn: Button = $CenterPanel/SettingsPanel/VBox/ConfirmButton
 @onready var back_btn: Button = $CenterPanel/SettingsPanel/VBox/BackButton
@@ -53,12 +55,16 @@ func _ready() -> void:
 	# Settings control signals
 	bots_check.toggled.connect(_on_bots_toggled)
 	bots_slider.value_changed.connect(_on_bots_slider_changed)
+	volume_slider.value_changed.connect(_on_volume_changed)
 	
 	lobby_panel.visible = false
 	settings_panel.visible = false
 	menu_panel.visible = true
 	
 	_populate_settings_controls()
+	
+	# Apply saved volume setting
+	GameSettings.apply_volume()
 	
 	NetworkManager.room_created.connect(_on_room_created)
 	NetworkManager.room_joined.connect(_on_room_joined)
@@ -125,6 +131,10 @@ func _populate_settings_controls() -> void:
 			time_limit_option.selected = tl_idx
 		tl_idx += 1
 
+	# Volume
+	volume_slider.value = GameSettings.master_volume
+	_update_volume_label()
+
 func _on_bots_toggled(pressed: bool) -> void:
 	bots_slider.editable = pressed
 	if not pressed:
@@ -134,6 +144,15 @@ func _on_bots_toggled(pressed: bool) -> void:
 
 func _on_bots_slider_changed(value: float) -> void:
 	bots_count_label.text = "Count: " + str(int(value))
+
+func _on_volume_changed(value: float) -> void:
+	GameSettings.master_volume = value
+	GameSettings.apply_volume()
+	_update_volume_label()
+
+func _update_volume_label() -> void:
+	var percent := int(GameSettings.master_volume * 100)
+	volume_value_label.text = str(percent) + "%"
 
 func _on_map_pool_toggled(_pressed: bool) -> void:
 	_update_map_pool_constraint()
@@ -180,6 +199,8 @@ func _apply_settings() -> void:
 	var tl_idx = time_limit_option.selected
 	if tl_idx >= 0 and tl_idx < GameSettings.TIME_LIMIT_OPTIONS.size():
 		GameSettings.time_limit_minutes = GameSettings.TIME_LIMIT_OPTIONS[tl_idx]
+	GameSettings.master_volume = volume_slider.value
+	GameSettings.apply_volume()
 
 # ---- Menu actions ----
 

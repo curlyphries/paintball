@@ -232,6 +232,32 @@ text = "TIME LIMIT"
 layout_mode = 2
 custom_minimum_size = Vector2(0, 36)
 
+[node name="VolumeLabel" type="Label" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1.0)
+text = "VOLUME"
+
+[node name="VolumeRow" type="HBoxContainer" parent="CenterPanel/SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="VolumeSlider" type="HSlider" parent="CenterPanel/SettingsPanel/VBox/VolumeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 24)
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="VolumeValueLabel" type="Label" parent="CenterPanel/SettingsPanel/VBox/VolumeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 0)
+theme_override_font_sizes/font_size = 14
+text = "100%"
+horizontal_alignment = 2
+vertical_alignment = 1
+
 [node name="SettingsSpacer" type="Control" parent="CenterPanel/SettingsPanel/VBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 6)

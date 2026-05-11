@@ -148,6 +148,7 @@ func _on_bots_slider_changed(value: float) -> void:
 func _on_volume_changed(value: float) -> void:
 	GameSettings.master_volume = value
 	GameSettings.apply_volume()
+	GameSettings.save_prefs()
 	_update_volume_label()
 
 func _update_volume_label() -> void:

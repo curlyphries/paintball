@@ -49,8 +49,9 @@ const server = http.createServer((req, res) => {
       execSync(`cd ${DEPLOY_PATH}/server && npm ci --production`, { stdio: "inherit" });
 
       // Download latest HTML5 export artifact from GitHub Actions
+      execSync(`rm -rf ${DEPLOY_PATH}/export/web && mkdir -p ${DEPLOY_PATH}/export/web`, { stdio: "inherit" });
       execSync(
-        `cd ${DEPLOY_PATH} && gh run download --repo curlyphries/paintball --name paintball-web --dir export/web/ --force`,
+        `cd ${DEPLOY_PATH} && gh run download --repo curlyphries/paintball --name paintball-web --dir export/web/`,
         { stdio: "inherit" }
       );
 

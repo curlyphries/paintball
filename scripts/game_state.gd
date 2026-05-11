@@ -41,11 +41,11 @@ var _match_elapsed := 0.0
 
 # Weapon data
 var weapons: Dictionary = {
-	"pistol": {"damage": 1, "fire_rate": 0.4, "magazine": 12, "reload_time": 1.5, "speed": 40.0, "pellets": 1, "spread": 0.01, "color": Color.YELLOW},
-	"rifle": {"damage": 1, "fire_rate": 0.15, "magazine": 30, "reload_time": 2.0, "speed": 60.0, "pellets": 1, "spread": 0.005, "color": Color.GREEN},
-	"sniper": {"damage": 1, "fire_rate": 1.5, "magazine": 5, "reload_time": 3.0, "speed": 100.0, "pellets": 1, "spread": 0.0, "color": Color.PURPLE},
-	"shotgun": {"damage": 1, "fire_rate": 0.8, "magazine": 8, "reload_time": 2.5, "speed": 30.0, "pellets": 6, "spread": 0.08, "color": Color.RED},
-	"smg": {"damage": 1, "fire_rate": 0.08, "magazine": 45, "reload_time": 2.0, "speed": 50.0, "pellets": 1, "spread": 0.03, "color": Color.CYAN}
+	"pistol": {"damage": 1, "fire_rate": 0.4, "magazine": 12, "reload_time": 1.5, "speed": 40.0, "pellets": 1, "spread": 0.01, "color": Color.YELLOW, "recoil": 0.04},
+	"rifle": {"damage": 1, "fire_rate": 0.15, "magazine": 30, "reload_time": 2.0, "speed": 60.0, "pellets": 1, "spread": 0.005, "color": Color.GREEN, "recoil": 0.025},
+	"sniper": {"damage": 1, "fire_rate": 1.5, "magazine": 5, "reload_time": 3.0, "speed": 100.0, "pellets": 1, "spread": 0.0, "color": Color.PURPLE, "recoil": 0.10},
+	"shotgun": {"damage": 1, "fire_rate": 0.8, "magazine": 8, "reload_time": 2.5, "speed": 30.0, "pellets": 6, "spread": 0.08, "color": Color.RED, "recoil": 0.08},
+	"smg": {"damage": 1, "fire_rate": 0.08, "magazine": 45, "reload_time": 2.0, "speed": 50.0, "pellets": 1, "spread": 0.03, "color": Color.CYAN, "recoil": 0.015}
 }
 
 func get_weapon_data(weapon_name: String) -> Dictionary:

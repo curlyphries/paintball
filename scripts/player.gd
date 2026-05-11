@@ -105,6 +105,17 @@ func _input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
+	
+	# Freeze during countdown — apply gravity so player stays grounded
+	if GameState.match_phase != GameState.MatchPhase.PLAYING:
+		if not is_on_floor():
+			velocity.y -= GRAVITY * delta
+		velocity.x = move_toward(velocity.x, 0, FRICTION * delta)
+		velocity.z = move_toward(velocity.z, 0, FRICTION * delta)
+		move_and_slide()
+		_update_feel(delta)
+		return
+	
 	if _is_chat_active():
 		if not is_on_floor():
 			velocity.y -= GRAVITY * delta

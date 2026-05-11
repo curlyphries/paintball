@@ -48,10 +48,9 @@ const server = http.createServer((req, res) => {
       // Update relay server deps
       execSync(`cd ${DEPLOY_PATH}/server && npm ci --production`, { stdio: "inherit" });
 
-      // Download latest HTML5 export artifact from GitHub
-      // Uses gh CLI to grab the latest artifact
+      // Download latest HTML5 export artifact from GitHub Actions
       execSync(
-        `cd ${DEPLOY_PATH} && gh run download --repo curlyphries/paintball --name paintball-web --dir export/web/ 2>/dev/null || echo "Artifact download skipped (may need manual export)"`,
+        `cd ${DEPLOY_PATH} && gh run download --repo curlyphries/paintball --name paintball-web --dir export/web/ --force`,
         { stdio: "inherit" }
       );
 

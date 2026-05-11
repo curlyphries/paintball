@@ -60,6 +60,23 @@ func send_elimination(victim_id: int) -> void:
 		"killer_id": NetworkManager.local_player_id,
 	})
 
+# Map vote / rotation RPCs. game_sync is freed during the post-match scene, so
+# post_match.gd sends these directly via NetworkManager — but exposing them here
+# keeps the action vocabulary in one place and works for in-match callers.
+
+func send_map_vote(map_key: String) -> void:
+	NetworkManager.send_game_data({
+		"action": "map_vote",
+		"voter_id": NetworkManager.local_player_id,
+		"map": map_key,
+	})
+
+func send_set_next_map(map_key: String) -> void:
+	NetworkManager.send_game_data({
+		"action": "set_next_map",
+		"map": map_key,
+	})
+
 func _on_game_data(from_id: int, data: Dictionary) -> void:
 	var action = data.get("action", "")
 	

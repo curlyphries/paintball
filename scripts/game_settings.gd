@@ -38,6 +38,11 @@ var current_map: String = "warehouse"
 enum RotationMode { VOTE, RANDOM, ORDERED }
 var rotation_mode: int = RotationMode.VOTE
 
+# One-shot bypass for main_game's solo randomizer. The post-match scene sets
+# this to true before transitioning so the chosen/voted map isn't overwritten
+# by the next match's _ready. main_game consumes the flag back to false.
+var honor_current_map_next_load: bool = false
+
 # Deprecated alias — reads/writes current_map. Remove after one PR cycle.
 var selected_map: String:
 	get:
@@ -71,6 +76,16 @@ func pick_random_from_pool() -> String:
 	if map_pool.is_empty():
 		return "warehouse"
 	return map_pool[randi() % map_pool.size()]
+
+func get_next_ordered_map() -> String:
+	# Next-in-pool relative to current_map. Used by the post-match scene's
+	# ORDERED rotation mode.
+	if map_pool.is_empty():
+		return current_map
+	var idx = map_pool.find(current_map)
+	if idx < 0:
+		return map_pool[0]
+	return map_pool[(idx + 1) % map_pool.size()]
 
 func get_rotation_mode_name() -> String:
 	match rotation_mode:

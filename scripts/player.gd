@@ -15,6 +15,9 @@ const CAMERA_HEIGHT_TPS := 1.8
 const CAMERA_DISTANCE_FPS := 0.0
 const CAMERA_HEIGHT_FPS := 1.6
 
+# Cached node refs
+var _hud: Control = null
+
 # State
 var is_sprinting := false
 var is_crouching := false
@@ -55,12 +58,13 @@ func _ready() -> void:
 	# Connect weapon signals
 	weapon.fired.connect(_on_weapon_fired)
 	weapon.ammo_changed.connect(_on_ammo_changed)
+	
+	# Cache HUD once to avoid per-frame string lookups
+	_hud = get_node_or_null("/root/Main/UI/HUD")
+
 
 func _is_chat_active() -> bool:
-	var hud = get_node_or_null("/root/Main/UI/HUD")
-	if hud and hud.has_method("is_chat_active"):
-		return hud.is_chat_active()
-	return false
+	return _hud != null and _hud.has_method("is_chat_active") and _hud.is_chat_active()
 
 func _input(event: InputEvent) -> void:
 	if is_dead:
@@ -258,10 +262,8 @@ func switch_weapon(index: int) -> void:
 		return
 	current_weapon_index = index
 	weapon.switch_to(available_weapons[index])
-	# Update HUD
-	var hud = get_node_or_null("/root/Main/UI/HUD")
-	if hud:
-		hud.update_weapon(available_weapons[index])
+	if _hud:
+		_hud.update_weapon(available_weapons[index])
 
 func _on_weapon_fired(pos: Vector3, direction: Vector3, spd: float, color: Color) -> void:
 	GameState.record_shot_fired(player_id)
@@ -282,9 +284,8 @@ func _on_weapon_fired(pos: Vector3, direction: Vector3, spd: float, color: Color
 		shoot_sound.play()
 
 func _on_ammo_changed(current: int, max_ammo: int) -> void:
-	var hud = get_node_or_null("/root/Main/UI/HUD")
-	if hud:
-		hud.update_ammo(current, max_ammo)
+	if _hud:
+		_hud.update_ammo(current, max_ammo)
 
 func get_aim_direction() -> Vector3:
 	return -camera_pivot.global_transform.basis.z

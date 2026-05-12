@@ -1,7 +1,12 @@
 extends Node
 
+const PREFS_PATH := "user://prefs.cfg"
+
 # Game Settings — Autoload singleton
 # Configurable before starting a game, read by main_game.gd and game_state.gd
+
+func _ready() -> void:
+	load_prefs()
 
 # --- Game mode ---
 enum GameMode { DEATHMATCH, TEAM_VS_TEAM, CAPTURE_THE_FLAG }
@@ -138,6 +143,18 @@ func apply_volume() -> void:
 	else:
 		volume_db = lerp(MIN_VOLUME_DB, MAX_VOLUME_DB, master_volume)
 	AudioServer.set_bus_volume_db(0, volume_db)  # 0 is Master bus
+
+func save_prefs() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("audio", "master_volume", master_volume)
+	cfg.save(PREFS_PATH)
+
+func load_prefs() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(PREFS_PATH) != OK:
+		return
+	master_volume = clampf(float(cfg.get_value("audio", "master_volume", 1.0)), 0.0, 1.0)
+	apply_volume()
 
 func reset_to_defaults() -> void:
 	game_mode = GameMode.TEAM_VS_TEAM

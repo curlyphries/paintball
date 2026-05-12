@@ -2,6 +2,7 @@ const { WebSocketServer } = require("ws");
 
 const PORT = process.env.PORT || 9090;
 const MAX_PLAYERS_PER_ROOM = 8;
+const MAX_TOTAL_ROOMS = 50;
 
 // Room storage: code -> { players: Map<ws, playerInfo>, host: ws, state: string }
 const rooms = new Map();
@@ -54,7 +55,7 @@ wss.on("connection", (ws, req) => {
         handleLeaveRoom(ws);
         break;
       case "game_data":
-        handleGameData(ws, msg);
+        handleGameData(ws, msg, data);
         break;
       case "start_game":
         handleStartGame(ws);
@@ -113,6 +114,11 @@ function checkRoomRateLimit(ip) {
 function handleCreateRoom(ws, msg) {
   if (ws.roomCode) {
     ws.send(JSON.stringify({ type: "error", message: "Already in a room" }));
+    return;
+  }
+
+  if (rooms.size >= MAX_TOTAL_ROOMS) {
+    ws.send(JSON.stringify({ type: "error", message: "Server is full. Try again later." }));
     return;
   }
 
@@ -240,14 +246,14 @@ function handleLeaveRoom(ws) {
   console.log(`[Room ${code}] "${playerInfo?.name}" left (${room.players.size} remaining)`);
 }
 
-function handleGameData(ws, msg) {
+function handleGameData(ws, msg, rawBuffer) {
   const code = ws.roomCode;
   if (!code) return;
 
   const room = rooms.get(code);
   if (!room) return;
 
-  // Relay game data to all other players in the room
+  // Re-encode with from field — avoids double-serializing msg.data
   const relay = JSON.stringify({
     type: "game_data",
     from: ws.playerId,

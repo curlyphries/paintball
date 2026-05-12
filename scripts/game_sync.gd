@@ -3,7 +3,7 @@ extends Node
 # GameSync — Handles sending/receiving player state over the network
 # Attach to Main scene when in multiplayer mode
 
-const SYNC_RATE := 1.0 / 20.0  # 20 ticks per second
+const SYNC_RATE := 1.0 / 10.0  # 10 ticks per second — sufficient with lerp interpolation
 
 var sync_timer := 0.0
 var net_players: Dictionary = {}  # player_id -> NetPlayer node

@@ -34,18 +34,23 @@ func _ready() -> void:
 	_setup_confirm_dialog()
 
 func _setup_ui() -> void:
-	# Main background
+	# Set this Control to fill the viewport
+	anchors_preset = PRESET_FULL_RECT
+	
+	# Main background - semi-transparent dark
 	var bg = ColorRect.new()
-	bg.color = Color(0, 0, 0, 0)
+	bg.color = Color(0.05, 0.05, 0.06, 0.8)
 	bg.layout_mode = 1
 	bg.anchors_preset = PRESET_FULL_RECT
 	add_child(bg)
 	
 	# Toolbar
 	toolbar = HBoxContainer.new()
+	toolbar.layout_mode = 1
 	toolbar.anchors_preset = PRESET_TOP_WIDE
 	toolbar.offset_bottom = 40
 	toolbar.theme_override_constants/separation = 8
+	add_child(toolbar)
 	
 	var toolbar_bg = ColorRect.new()
 	toolbar_bg.color = PANEL_COLOR
@@ -55,15 +60,16 @@ func _setup_ui() -> void:
 	toolbar.move_child(toolbar_bg, 0)
 	
 	_add_toolbar_buttons()
-	add_child(toolbar)
 	
 	# Left panel - Tool palette
 	left_panel = VBoxContainer.new()
+	left_panel.layout_mode = 1
 	left_panel.anchors_preset = PRESET_LEFT_WIDE
 	left_panel.offset_top = 45
 	left_panel.offset_right = 180
 	left_panel.offset_bottom = -35
 	left_panel.theme_override_constants/separation = 8
+	add_child(left_panel)
 	
 	var left_bg = ColorRect.new()
 	left_bg.color = PANEL_COLOR
@@ -73,15 +79,16 @@ func _setup_ui() -> void:
 	left_panel.move_child(left_bg, 0)
 	
 	_add_tool_palette()
-	add_child(left_panel)
 	
 	# Right panel - Properties
 	right_panel = VBoxContainer.new()
+	right_panel.layout_mode = 1
 	right_panel.anchors_preset = PRESET_RIGHT_WIDE
 	right_panel.offset_left = -250
 	right_panel.offset_top = 45
 	right_panel.offset_bottom = -35
 	right_panel.theme_override_constants/separation = 8
+	add_child(right_panel)
 	
 	var right_bg = ColorRect.new()
 	right_bg.color = PANEL_COLOR
@@ -91,12 +98,13 @@ func _setup_ui() -> void:
 	right_panel.move_child(right_bg, 0)
 	
 	_add_property_panel()
-	add_child(right_panel)
 	
 	# Status bar
 	status_bar = HBoxContainer.new()
+	status_bar.layout_mode = 1
 	status_bar.anchors_preset = PRESET_BOTTOM_WIDE
 	status_bar.offset_top = -30
+	add_child(status_bar)
 	
 	var status_bg = ColorRect.new()
 	status_bg.color = PANEL_COLOR.darkened(0.1)
@@ -106,7 +114,6 @@ func _setup_ui() -> void:
 	status_bar.move_child(status_bg, 0)
 	
 	_add_status_bar()
-	add_child(status_bar)
 
 func _add_toolbar_buttons() -> void:
 	var buttons_data = [

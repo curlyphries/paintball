@@ -9,6 +9,7 @@ extends Control
 @onready var join_btn: Button = $CenterPanel/MenuPanel/VBox/JoinRow/JoinButton
 @onready var name_input: LineEdit = $CenterPanel/MenuPanel/VBox/NameInput
 @onready var status_label: Label = $CenterPanel/MenuPanel/VBox/StatusLabel
+@onready var map_editor_btn: Button = $CenterPanel/MenuPanel/VBox/MapEditorButton
 
 # --- Settings panel ---
 @onready var settings_panel: Control = $CenterPanel/SettingsPanel
@@ -46,6 +47,7 @@ func _ready() -> void:
 	play_solo_btn.pressed.connect(_on_play_solo)
 	create_game_btn.pressed.connect(_on_create_game)
 	join_btn.pressed.connect(_on_join_game)
+	map_editor_btn.pressed.connect(_on_map_editor)
 	copy_btn.pressed.connect(_on_copy_link)
 	start_now_btn.pressed.connect(_on_start_now)
 	cancel_btn.pressed.connect(_on_cancel)
@@ -263,6 +265,9 @@ func _on_copy_link() -> void:
 	else:
 		DisplayServer.clipboard_set(link)
 	lobby_status.text = "Invite link copied!"
+
+func _on_map_editor() -> void:
+	get_tree().change_scene_to_file("res://scenes/map_editor.tscn")
 
 # ---- Network callbacks ----
 

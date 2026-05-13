@@ -152,6 +152,13 @@ theme_override_font_sizes/font_size = 14
 text = "🗺️ MAP EDITOR (Host Only)"
 theme_override_colors/font_color = Color(0.9, 0.7, 0.3, 1.0)
 
+[node name="ClearCacheLink" type="LinkButton" parent="CenterPanel/MenuPanel/VBox"]
+layout_mode = 2
+text = "Clear Cache / Force Refresh"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.4, 0.6, 0.8, 1.0)
+uri = "javascript:localStorage.clear();sessionStorage.clear();navigator.serviceWorker.getRegistrations().then(r=>Promise.all(r.map(x=>x.unregister()))).then(()=>location.reload(true));"
+
 [node name="SettingsPanel" type="Control" parent="CenterPanel"]
 visible = false
 layout_mode = 1

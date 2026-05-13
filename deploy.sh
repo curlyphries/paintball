@@ -71,6 +71,9 @@ if [ ! -f export/web/index.html ]; then
     exit 1
 fi
 
+# Add browser helper scripts to exported HTML
+./add_browser_helpers.sh
+
 echo "Export complete: $(du -sh export/web/ | cut -f1) total"
 
 # --- .env check ---

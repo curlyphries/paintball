@@ -229,17 +229,31 @@ collision_layer = 1
 shape = SubResource("shape_platlg")
 
 [node name="RampNW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(0.95, 0.31, 0, -0.31, 0.95, 0, 0, 0, 1, -18, 1.5, -14)
+transform = Transform3D(1, 0, 0, 0, 0.866, -0.5, 0, 0.5, 0.866, -8, 1.41, -13.4)
 use_collision = true
 collision_layer = 1
-size = Vector3(7.0, 0.2, 2.5)
+size = Vector3(2.5, 0.2, 6.0)
 material = SubResource("mat_ring")
 
 [node name="RampSE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(0.95, -0.31, 0, 0.31, 0.95, 0, 0, 0, 1, 18, 1.5, 14)
+transform = Transform3D(1, 0, 0, 0, 0.866, 0.5, 0, -0.5, 0.866, 8, 1.41, 13.4)
 use_collision = true
 collision_layer = 1
-size = Vector3(7.0, 0.2, 2.5)
+size = Vector3(2.5, 0.2, 6.0)
+material = SubResource("mat_ring")
+
+[node name="RingBridgeN" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.9, -18)
+use_collision = true
+collision_layer = 1
+size = Vector3(8.0, 0.2, 2.5)
+material = SubResource("mat_ring")
+
+[node name="RingBridgeS" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.9, 18)
+use_collision = true
+collision_layer = 1
+size = Vector3(8.0, 0.2, 2.5)
 material = SubResource("mat_ring")
 
 [node name="RingRailN" type="CSGBox3D" parent="NavigationRegion3D"]
@@ -451,13 +465,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0.5, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0.5, 0)
 
 [node name="Spawn5" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 3.3, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 3.3, -18)
 
 [node name="Spawn6" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 3.3, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 3.3, -18)
 
 [node name="Spawn7" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 3.3, 18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 3.3, 18)
 
 [node name="Spawn8" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 3.3, 18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 3.3, 18)

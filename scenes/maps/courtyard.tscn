@@ -198,14 +198,14 @@ collision_layer = 1
 shape = SubResource("shape_platlg")
 
 [node name="StairsNorth" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(0.97, 0.243, 0, -0.243, 0.97, 0, 0, 0, 1, 0, 0.85, -22)
+transform = Transform3D(1, 0, 0, 0, 0.932, -0.3625, 0, 0.3625, 0.932, -10, 0.63, -18.14)
 use_collision = true
 collision_layer = 1
 size = Vector3(4.0, 0.2, 4.0)
 material = SubResource("mat_terrace")
 
 [node name="StairsSouth" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(0.97, -0.243, 0, 0.243, 0.97, 0, 0, 0, 1, 0, 0.85, 22)
+transform = Transform3D(1, 0, 0, 0, 0.932, 0.3625, 0, -0.3625, 0.932, 10, 0.63, 18.14)
 use_collision = true
 collision_layer = 1
 size = Vector3(4.0, 0.2, 4.0)

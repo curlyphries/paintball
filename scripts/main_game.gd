@@ -129,13 +129,15 @@ func _spawn_bots(count: int, start_id: int) -> void:
 		GameState.register_player(bot.player_id, bot.bot_name)
 
 func _get_map_bounds() -> Array:
+	# Matched to the redesigned map footprints (warehouse 60x45,
+	# courtyard 60x60, arena 50m circle — inscribed square minus margin)
 	match GameSettings.current_map:
 		"courtyard":
-			return [Vector3(-20, 0, -15), Vector3(20, 0, 15)]
+			return [Vector3(-27, 0, -27), Vector3(27, 0, 27)]
 		"arena":
-			return [Vector3(-16, 0, -16), Vector3(16, 0, 16)]
+			return [Vector3(-17, 0, -17), Vector3(17, 0, 17)]
 		_:  # warehouse
-			return [Vector3(-18, 0, -13), Vector3(18, 0, 13)]
+			return [Vector3(-28, 0, -20), Vector3(28, 0, 20)]
 
 func start_round() -> void:
 	round_active = false

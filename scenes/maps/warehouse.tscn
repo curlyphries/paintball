@@ -166,38 +166,72 @@ collision_layer = 1
 size = Vector3(8.0, 0.2, 8.0)
 material = SubResource("mat_catwalk")
 
-[node name="SiloCatwalkRailN" type="CSGBox3D" parent="NavigationRegion3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, -3.95)
-size = Vector3(8.0, 0.8, 0.1)
+[node name="SiloCatwalkRailNW" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.75, 4.6, -3.95)
+size = Vector3(2.5, 0.8, 0.1)
 material = SubResource("mat_catwalk")
 
-[node name="SiloCatwalkRailS" type="CSGBox3D" parent="NavigationRegion3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.6, 3.95)
-size = Vector3(8.0, 0.8, 0.1)
+[node name="SiloCatwalkRailNE" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 4.6, -3.95)
+size = Vector3(2.5, 0.8, 0.1)
 material = SubResource("mat_catwalk")
 
-[node name="SiloCatwalkRailE" type="CSGBox3D" parent="NavigationRegion3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.95, 4.6, 0)
-size = Vector3(0.1, 0.8, 8.0)
+[node name="SiloCatwalkRailSW" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.75, 4.6, 3.95)
+size = Vector3(2.5, 0.8, 0.1)
 material = SubResource("mat_catwalk")
 
-[node name="SiloCatwalkRailW" type="CSGBox3D" parent="NavigationRegion3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 4.6, 0)
-size = Vector3(0.1, 0.8, 8.0)
+[node name="SiloCatwalkRailSE" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75, 4.6, 3.95)
+size = Vector3(2.5, 0.8, 0.1)
+material = SubResource("mat_catwalk")
+
+[node name="SiloCatwalkRailEN" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.95, 4.6, -2.75)
+size = Vector3(0.1, 0.8, 2.5)
+material = SubResource("mat_catwalk")
+
+[node name="SiloCatwalkRailES" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.95, 4.6, 2.75)
+size = Vector3(0.1, 0.8, 2.5)
+material = SubResource("mat_catwalk")
+
+[node name="SiloCatwalkRailWN" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 4.6, -2.75)
+size = Vector3(0.1, 0.8, 2.5)
+material = SubResource("mat_catwalk")
+
+[node name="SiloCatwalkRailWS" type="CSGBox3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 4.6, 2.75)
+size = Vector3(0.1, 0.8, 2.5)
 material = SubResource("mat_catwalk")
 
 [node name="RampWest" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(0.97, 0.243, 0, -0.243, 0.97, 0, 0, 0, 1, -8, 2.0, 0)
+transform = Transform3D(0.866, -0.5, 0, 0.5, 0.866, 0, 0, 0, 1, -7.46, 2.0, 0)
 use_collision = true
 collision_layer = 1
 size = Vector3(8.0, 0.2, 2.5)
 material = SubResource("mat_catwalk")
 
 [node name="RampEast" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(0.97, -0.243, 0, 0.243, 0.97, 0, 0, 0, 1, 8, 2.0, 0)
+transform = Transform3D(0.866, 0.5, 0, -0.5, 0.866, 0, 0, 0, 1, 7.46, 2.0, 0)
 use_collision = true
 collision_layer = 1
 size = Vector3(8.0, 0.2, 2.5)
+material = SubResource("mat_catwalk")
+
+[node name="BridgeNorth" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 0.954, -0.301, 0, 0.301, 0.954, 0, 4.75, -6.375)
+use_collision = true
+collision_layer = 1
+size = Vector3(2.0, 0.2, 5.0)
+material = SubResource("mat_catwalk")
+
+[node name="BridgeSouth" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 0.954, 0.301, 0, -0.301, 0.954, 0, 4.75, 6.375)
+use_collision = true
+collision_layer = 1
+size = Vector3(2.0, 0.2, 5.0)
 material = SubResource("mat_catwalk")
 
 [node name="MidCatwalkN" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
@@ -353,7 +387,7 @@ collision_layer = 1
 shape = SubResource("shape_walllow")
 
 [node name="PlatformCorner1" type="StaticBody3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 1.5, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0.75, -18)
 collision_layer = 1
 
 [node name="Visual" parent="NavigationRegion3D/PlatformCorner1" instance=ExtResource("5_platsm")]
@@ -362,7 +396,7 @@ collision_layer = 1
 shape = SubResource("shape_platsm")
 
 [node name="PlatformCorner2" type="StaticBody3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 1.5, -18)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.75, -18)
 collision_layer = 1
 
 [node name="Visual" parent="NavigationRegion3D/PlatformCorner2" instance=ExtResource("5_platsm")]

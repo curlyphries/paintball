@@ -43,9 +43,9 @@ var _match_elapsed := 0.0
 var weapons: Dictionary = {
 	"pistol": {"damage": 1, "fire_rate": 0.4, "magazine": 12, "reload_time": 1.5, "speed": 40.0, "pellets": 1, "spread": 0.01, "color": Color.YELLOW},
 	"rifle": {"damage": 1, "fire_rate": 0.15, "magazine": 30, "reload_time": 2.0, "speed": 60.0, "pellets": 1, "spread": 0.005, "color": Color.GREEN},
-	"sniper": {"damage": 1, "fire_rate": 1.5, "magazine": 5, "reload_time": 3.0, "speed": 100.0, "pellets": 1, "spread": 0.0, "color": Color.PURPLE},
+	"sniper": {"damage": 1, "fire_rate": 0.9, "magazine": 5, "reload_time": 3.0, "speed": 100.0, "pellets": 1, "spread": 0.0, "color": Color.PURPLE},
 	"shotgun": {"damage": 1, "fire_rate": 0.8, "magazine": 8, "reload_time": 2.5, "speed": 30.0, "pellets": 6, "spread": 0.08, "color": Color.RED},
-	"smg": {"damage": 1, "fire_rate": 0.08, "magazine": 45, "reload_time": 2.0, "speed": 50.0, "pellets": 1, "spread": 0.03, "color": Color.CYAN}
+	"smg": {"damage": 1, "fire_rate": 0.12, "magazine": 45, "reload_time": 2.0, "speed": 50.0, "pellets": 1, "spread": 0.03, "color": Color.CYAN}
 }
 
 func get_weapon_data(weapon_name: String) -> Dictionary:

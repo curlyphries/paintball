@@ -4,7 +4,7 @@ extends CharacterBody3D
 # Movement
 const WALK_SPEED := 4.0
 const SPRINT_SPEED := 6.5
-const GRAVITY := 9.8
+const GRAVITY := 16.7  # matches player.gd so everyone falls at the same rate
 
 # AI State machine
 enum State { PATROL, CHASE, COVER, SHOOT, DEAD }

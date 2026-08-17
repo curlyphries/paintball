@@ -5,9 +5,22 @@ extends CharacterBody3D
 const WALK_SPEED := 5.0
 const SPRINT_SPEED := 8.0
 const CROUCH_SPEED := 2.5
-const JUMP_VELOCITY := 4.5
-const GRAVITY := 9.8
+# Heavier gravity + matched jump velocity: same ~1.03m jump height the maps
+# are built around, but a snappier arc (less floaty hang time)
+const JUMP_VELOCITY := 5.9
+const GRAVITY := 16.7
+const GROUND_ACCEL := 45.0   # m/s^2 — reaches sprint speed in ~0.18s
+const GROUND_FRICTION := 50.0
+const AIR_ACCEL := 12.0      # limited air control — jumps carry commitment
 const MOUSE_SENSITIVITY := 0.002
+
+# Camera feel
+const BASE_FOV := 75.0
+const SPRINT_FOV := 82.0
+const ZOOM_FOV := 30.0
+const FOV_LERP_SPEED := 10.0
+const CROUCH_CAM_LERP_SPEED := 12.0
+const RECOIL_RECOVER_SPEED := 0.15  # rad/s
 
 # Camera
 const CAMERA_DISTANCE_TPS := 3.5
@@ -72,10 +85,12 @@ func _input(event: InputEvent) -> void:
 	if _is_chat_active():
 		return
 	
-	# Mouse look — always active when captured
+	# Mouse look — always active when captured; sensitivity scales with FOV
+	# so zoomed aiming stays controllable
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
-		camera_pivot.rotate_x(-event.relative.y * MOUSE_SENSITIVITY)
+		var sens := MOUSE_SENSITIVITY * (camera.fov / BASE_FOV)
+		rotate_y(-event.relative.x * sens)
+		camera_pivot.rotate_x(-event.relative.y * sens)
 		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x, -1.2, 1.2)
 	
 	# Click to re-capture mouse if released
@@ -128,30 +143,36 @@ func _physics_process(delta: float) -> void:
 	
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-	
+
+	# Acceleration-based movement: ground is responsive, air control is
+	# limited so jumps carry commitment
+	var accel := GROUND_ACCEL if is_on_floor() else AIR_ACCEL
 	if direction:
-		velocity.x = direction.x * speed
-		velocity.z = direction.z * speed
+		velocity.x = move_toward(velocity.x, direction.x * speed, accel * delta)
+		velocity.z = move_toward(velocity.z, direction.z * speed, accel * delta)
 	else:
-		velocity.x = move_toward(velocity.x, 0, speed * delta * 10.0)
-		velocity.z = move_toward(velocity.z, 0, speed * delta * 10.0)
-	
+		var friction := GROUND_FRICTION if is_on_floor() else AIR_ACCEL
+		velocity.x = move_toward(velocity.x, 0, friction * delta)
+		velocity.z = move_toward(velocity.z, 0, friction * delta)
+
 	move_and_slide()
+
+	# Smooth camera height between stand/crouch instead of snapping
+	var cam_target_y := 1.0 if is_crouching else 1.6
+	camera_pivot.position.y = lerpf(camera_pivot.position.y, cam_target_y, CROUCH_CAM_LERP_SPEED * delta)
 
 func start_crouch() -> void:
 	is_crouching = true
-	# Shrink collision shape
+	# Shrink collision shape (camera height lerps in _physics_process)
 	var shape = collision_shape.shape as CapsuleShape3D
 	shape.height = 1.0
 	collision_shape.position.y = 0.5
-	camera_pivot.position.y = 1.0
 
 func end_crouch() -> void:
 	is_crouching = false
 	var shape = collision_shape.shape as CapsuleShape3D
 	shape.height = 1.8
 	collision_shape.position.y = 0.9
-	camera_pivot.position.y = 1.6
 
 func toggle_camera_mode() -> void:
 	is_first_person = not is_first_person
@@ -216,6 +237,7 @@ func respawn(spawn_position: Vector3) -> void:
 const MELEE_RANGE := 2.0
 const MELEE_COOLDOWN := 1.0
 var _melee_cooldown := 0.0
+var _recoil := 0.0
 
 func _process(delta: float) -> void:
 	if is_dead:
@@ -225,6 +247,23 @@ func _process(delta: float) -> void:
 
 	if _melee_cooldown > 0.0:
 		_melee_cooldown -= delta
+
+	# Sniper zoom (hold right-click, first person) and sprint FOV kick
+	is_right_clicking = Input.is_action_pressed("aim")
+	var is_zoomed := is_right_clicking and is_first_person \
+		and available_weapons[current_weapon_index] == "sniper"
+	var target_fov := BASE_FOV
+	if is_zoomed:
+		target_fov = ZOOM_FOV
+	elif is_sprinting and velocity.length() > 1.0:
+		target_fov = SPRINT_FOV
+	camera.fov = lerpf(camera.fov, target_fov, FOV_LERP_SPEED * delta)
+
+	# Recoil recovery — the camera drifts back down after each shot's kick
+	if _recoil > 0.0:
+		var recover := minf(_recoil, RECOIL_RECOVER_SPEED * delta)
+		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x - recover, -1.2, 1.2)
+		_recoil -= recover
 
 	# Combat only while the round is live — no countdown/round-over kills
 	var can_fight: bool = GameState.match_phase == GameState.MatchPhase.PLAYING
@@ -309,6 +348,11 @@ func _on_weapon_fired(pos: Vector3, direction: Vector3, spd: float, color: Color
 	if game_sync:
 		game_sync.send_shoot(spawn_pos, direction, color, spd)
 	
+	# Camera kick — heavier weapons kick harder; recovery runs in _process
+	var kick: float = 0.008 + weapon.weapon_data.fire_rate * 0.015
+	camera_pivot.rotation.x = clamp(camera_pivot.rotation.x + kick, -1.2, 1.2)
+	_recoil = minf(_recoil + kick, 0.12)
+
 	# Play shoot sound
 	if shoot_sound:
 		shoot_sound.play()

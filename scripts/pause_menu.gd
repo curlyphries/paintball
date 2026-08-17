@@ -3,13 +3,20 @@ extends Control
 # Pause Menu — toggled with Esc during gameplay
 
 @onready var resume_btn: Button = $Panel/VBox/ResumeButton
+@onready var volume_slider: HSlider = $Panel/VBox/VolumeRow/VolumeSlider
+@onready var volume_value_label: Label = $Panel/VBox/VolumeRow/VolumeValueLabel
 @onready var quit_btn: Button = $Panel/VBox/QuitButton
 
 func _ready() -> void:
 	resume_btn.pressed.connect(_on_resume)
 	quit_btn.pressed.connect(_on_quit)
+	volume_slider.value_changed.connect(_on_volume_changed)
 	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Initialize volume from settings
+	volume_slider.value = GameSettings.master_volume
+	_update_volume_label()
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -31,6 +38,16 @@ func _resume() -> void:
 
 func _on_resume() -> void:
 	_resume()
+
+func _on_volume_changed(value: float) -> void:
+	GameSettings.master_volume = value
+	GameSettings.apply_volume()
+	GameSettings.save_prefs()
+	_update_volume_label()
+
+func _update_volume_label() -> void:
+	var percent := int(GameSettings.master_volume * 100)
+	volume_value_label.text = str(percent) + "%"
 
 func _on_quit() -> void:
 	get_tree().paused = false

@@ -61,16 +61,23 @@ func _process(delta: float) -> void:
 			time_remaining = 0
 			_on_time_expired()
 
-func start_match() -> void:
+func reset_match() -> void:
+	# Clear all match-scoped state. Called at start_match and on demand
+	# (e.g. when transitioning between maps via the post-match rotation).
 	current_round = 0
 	player_wins = 0
 	bot_wins = 0
+	players_alive.clear()
+	bots_alive.clear()
 	kill_scores.clear()
 	match_stats.clear()
-	_match_start_time = Time.get_ticks_msec() / 1000.0
 	_match_elapsed = 0.0
 	match_phase = MatchPhase.WAITING
-	
+
+func start_match() -> void:
+	reset_match()
+	_match_start_time = Time.get_ticks_msec() / 1000.0
+
 	# Configure time limit from settings
 	if GameSettings.time_limit_minutes > 0:
 		time_limit_enabled = true

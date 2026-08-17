@@ -38,6 +38,10 @@ func apply_state(state: Dictionary) -> void:
 	if state.has("pos"):
 		var p = state.pos
 		target_position = Vector3(p[0], p[1], p[2])
+		# State is only broadcast while alive — a packet from a "dead" puppet
+		# means they respawned. Revive and snap (don't lerp across the map).
+		if is_dead:
+			respawn(target_position)
 	if state.has("rot_y"):
 		target_rotation_y = state.rot_y
 	if state.has("head_x"):

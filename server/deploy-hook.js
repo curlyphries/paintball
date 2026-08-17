@@ -64,10 +64,16 @@ const server = http.createServer((req, res) => {
       // Update relay server deps
       execSync("npm ci --production", { stdio: "inherit", cwd: `${DEPLOY_PATH}/server` });
 
-      // Download latest HTML5 export artifact from GitHub Actions
-      execSync("rm -rf export/web && mkdir -p export/web", { stdio: "inherit", cwd: DEPLOY_PATH });
+      // Download the latest HTML5 export into a staging dir and only swap
+      // it into place on success — a failed download (expired gh token,
+      // network, renamed artifact) must never blank the live site
+      execSync("rm -rf export/web.new && mkdir -p export/web.new", { stdio: "inherit", cwd: DEPLOY_PATH });
       execSync(
-        "gh run download --repo curlyphries/paintball --name paintball-web --dir export/web/",
+        "gh run download --repo curlyphries/paintball --name paintball-web --dir export/web.new/",
+        { stdio: "inherit", cwd: DEPLOY_PATH }
+      );
+      execSync(
+        "rm -rf export/web.old && { [ -e export/web ] && mv export/web export/web.old || true; } && mv export/web.new export/web && rm -rf export/web.old",
         { stdio: "inherit", cwd: DEPLOY_PATH }
       );
 

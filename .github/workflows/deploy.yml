@@ -77,13 +77,21 @@ jobs:
     steps:
       - name: Trigger deploy webhook
         run: |
-          curl -sf -X POST \
+          # Fail the job if the deploy fails — a swallowed error here means
+          # green CI while the live site is broken
+          curl -sf --max-time 300 -X POST \
             -H "Authorization: Bearer ${{ secrets.DEPLOY_WEBHOOK_SECRET }}" \
             -H "Content-Type: application/json" \
             -d '{"ref":"${{ github.sha }}","artifact":"paintball-web"}' \
-            "${{ secrets.DEPLOY_WEBHOOK_URL }}" \
-          && echo "Deploy triggered successfully" \
-          || echo "::warning::Deploy webhook failed — server may need manual update"
+            "${{ secrets.DEPLOY_WEBHOOK_URL }}"
+          echo "Deploy succeeded"
+
+      - name: Verify site is serving
+        run: |
+          sleep 5
+          curl -sf -o /dev/null "https://curlyphries.net/paintball/" \
+            && echo "Site is live" \
+            || (echo "::error::Site is not serving after deploy" && exit 1)
 
   # ──────────────────────────────────────────────
   # Step 3: Docker images to GHCR (tags only)

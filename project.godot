@@ -17,7 +17,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 config/name="Paintball Arena"
 config/description="3D paintball game - 1v3 bots, one-hit elimination, best of 5"
 run/main_scene="res://scenes/main_menu.tscn"
-config/features=PackedStringArray("4.6", "Forward Plus")
+config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -144,7 +144,13 @@ toggle_help={
 3d_physics/layer_2="Player"
 3d_physics/layer_3="Projectile"
 
+[physics]
+
+common/physics_ticks_per_second=60
+common/physics_jitter_fix=0.0
+
 [rendering]
 
-anti_aliasing/quality/msaa_3d=2
+anti_aliasing/quality/msaa_3d=0
 environment/defaults/default_clear_color=Color(0.1, 0.1, 0.12, 1)
+lights_and_shadows/directional_shadow/size=1024

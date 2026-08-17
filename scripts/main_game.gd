@@ -20,8 +20,13 @@ func _ready() -> void:
 
 	# Solo: pick a map from the pool now (server picks for networked play).
 	# Always randomize — pool of 1 still picks that map; pool of N varies the match.
+	# Exception: if the post-match scene already chose a map (vote / next-in-pool /
+	# random pick from the rotation panel), honor it and clear the one-shot flag.
 	if not is_networked:
-		GameSettings.current_map = GameSettings.pick_random_from_pool()
+		if GameSettings.honor_current_map_next_load:
+			GameSettings.honor_current_map_next_load = false
+		else:
+			GameSettings.current_map = GameSettings.pick_random_from_pool()
 	
 	# Force deathmatch if no bots in non-networked team mode (rounds don't work solo with 0 enemies)
 	var bot_count_check = GameSettings.get_effective_bot_count()
@@ -180,7 +185,7 @@ func _on_player_eliminated(p: Player, killer_id: int) -> void:
 	hud.show_elimination_message(killer_name + " shot You")
 	
 	if is_networked and game_sync:
-		game_sync.send_elimination(NetworkManager.local_player_id)
+		game_sync.send_elimination(NetworkManager.local_player_id, killer_id)
 	
 	# Deathmatch: auto-respawn after delay
 	if is_deathmatch and not GameState.is_match_over():
@@ -233,25 +238,21 @@ func _on_round_ended(winner_team: int) -> void:
 		start_round()
 
 func _on_match_ended(winner_team: int) -> void:
-	var result_text: String
-	if is_deathmatch:
-		var my_kills = GameState.get_kill_score(0)
-		result_text = "VICTORY!" if winner_team == 0 else "DEFEAT!"
-		result_text += " (" + str(my_kills) + " kills)"
-	else:
-		result_text = "VICTORY!" if winner_team == 0 else "DEFEAT!"
-		result_text += "\n" + str(GameState.player_wins) + " - " + str(GameState.bot_wins)
-	
-	# Show the end-of-match scoreboard
-	hud.show_scoreboard(result_text)
-	
-	await get_tree().create_timer(10.0).timeout
-	
-	if is_networked:
-		if game_sync:
-			game_sync.cleanup()
-		NetworkManager.leave_room()
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	# Stash the result on GameState autoload so the post-match scene can title itself
+	# (VICTORY/DEFEAT/MATCH OVER). The scene reads match_stats directly for the table.
+	GameState.set_meta("last_winner_team", winner_team)
+	GameState.set_meta("last_was_deathmatch", is_deathmatch)
+	GameState.set_meta("last_player_wins", GameState.player_wins)
+	GameState.set_meta("last_bot_wins", GameState.bot_wins)
+	GameState.set_meta("last_my_kills", GameState.get_kill_score(0))
+
+	# Tear down match-scene-owned networking puppets but keep the NetworkManager
+	# session alive — post_match will broadcast the vote and the next main scene
+	# rebuilds game_sync on _ready.
+	if is_networked and game_sync:
+		game_sync.cleanup()
+
+	get_tree().change_scene_to_file("res://scenes/post_match.tscn")
 
 func _add_pause_menu() -> void:
 	var pause_scene = preload("res://scenes/pause_menu.tscn")

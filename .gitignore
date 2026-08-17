@@ -7,7 +7,6 @@ export/web/*
 
 # Node modules
 server/node_modules/
-server/package-lock.json
 
 # Environment
 .env
@@ -15,3 +14,12 @@ server/package-lock.json
 # OS files
 .DS_Store
 Thumbs.db
+
+# Gas Town (added by gt)
+.runtime/
+.claude/
+.logs/
+__pycache__/
+state.json
+CLAUDE.md
+CLAUDE.local.md

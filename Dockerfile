@@ -2,8 +2,8 @@
 # Usage: docker run -p 8080:80 -p 9090:9090 ghcr.io/curlyphries/paintball
 FROM node:20-alpine AS relay
 WORKDIR /app
-COPY server/package.json server/package-lock.json* ./
-RUN npm ci --production
+COPY server/package.json ./
+RUN npm install --production
 COPY server/index.js ./
 
 FROM nginx:alpine
@@ -14,11 +14,7 @@ COPY --from=relay /app /opt/relay
 COPY export/web /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Startup script
-COPY <<'EOF' /start.sh
-#!/bin/sh
-cd /opt/relay && node index.js &
-nginx -g 'daemon off;'
-EOF
+COPY start.sh /start.sh
 RUN chmod +x /start.sh
 EXPOSE 80 9090
 CMD ["/start.sh"]

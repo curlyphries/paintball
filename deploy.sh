@@ -37,7 +37,7 @@ for dir in \
     "$HOME/.local/share/godot/export_templates/4.6.2.stable" \
     "$HOME/.var/app/org.godotengine.Godot/data/godot/export_templates/4.6.2.stable" \
     "$HOME/Library/Application Support/Godot/export_templates/4.6.2.stable" \
-    "$APPDATA/Godot/export_templates/4.6.2.stable" 2>/dev/null; do
+    "${APPDATA:-}/Godot/export_templates/4.6.2.stable"; do
     if [ -d "$dir" ] && ls "$dir"/web_nothreads_release.zip &>/dev/null; then
         TEMPLATES_DIR="$dir"
         break
@@ -70,6 +70,9 @@ if [ ! -f export/web/index.html ]; then
     echo "ERROR: Export failed. Check Godot output above."
     exit 1
 fi
+
+# Add browser helper scripts to exported HTML
+./add_browser_helpers.sh
 
 echo "Export complete: $(du -sh export/web/ | cut -f1) total"
 

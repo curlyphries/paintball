@@ -1,6 +1,10 @@
 const { WebSocketServer } = require("ws");
+const crypto = require("crypto");
 
 const PORT = process.env.PORT || 9090;
+// Default to loopback for bare-metal-behind-proxy deploys; Docker sets
+// HOST=0.0.0.0 so the port mapping actually works.
+const HOST = process.env.HOST || "127.0.0.1";
 const MAX_PLAYERS_PER_ROOM = 8;
 const MAX_TOTAL_ROOMS = 50;
 
@@ -12,9 +16,12 @@ const MAX_ROOMS_PER_IP = 3;
 const ipConnections = new Map(); // ip -> count
 const ipRoomCreations = new Map(); // ip -> { count, resetAt }
 
-const wss = new WebSocketServer({ host: "127.0.0.1", port: PORT, maxPayload: 64 * 1024 });
+const MAX_MESSAGES_PER_SECOND = 60; // state sync (10/s) + shots + chat, with headroom
+const MAX_JOIN_ATTEMPTS_PER_MINUTE = 10; // slows room-code guessing
 
-console.log(`[Relay] Paintball Arena relay server running on ws://127.0.0.1:${PORT}`);
+const wss = new WebSocketServer({ host: HOST, port: PORT, maxPayload: 64 * 1024 });
+
+console.log(`[Relay] Paintball Arena relay server running on ws://${HOST}:${PORT}`);
 
 wss.on("connection", (ws, req) => {
   const ip = req.headers["x-real-ip"] || req.socket.remoteAddress;
@@ -32,10 +39,25 @@ wss.on("connection", (ws, req) => {
   ws.roomCode = null;
   ws.playerId = null;
   ws._ip = ip;
+  ws._msgCount = 0;
+  ws._msgWindowStart = Date.now();
+  ws._joinAttempts = 0;
+  ws._joinWindowStart = Date.now();
 
   ws.on("pong", () => { ws.isAlive = true; });
 
   ws.on("message", (data) => {
+    // Per-connection message rate cap — one member must not be able to
+    // flood the room (every game_data fans out to up to 7 peers)
+    const now = Date.now();
+    if (now - ws._msgWindowStart >= 1000) {
+      ws._msgWindowStart = now;
+      ws._msgCount = 0;
+    }
+    if (++ws._msgCount > MAX_MESSAGES_PER_SECOND) {
+      return; // drop silently; well-behaved clients never get near this
+    }
+
     let msg;
     try {
       msg = JSON.parse(data);
@@ -135,6 +157,7 @@ function handleCreateRoom(ws, msg) {
     host: ws,
     state: "lobby", // lobby | playing
     createdAt: Date.now(),
+    nextPlayerId: 2, // monotonic — never reused, even after players leave
   };
 
   ws.roomCode = code;
@@ -159,6 +182,17 @@ function handleJoinRoom(ws, msg) {
     return;
   }
 
+  // Throttle join attempts so room codes can't be brute-forced
+  const now = Date.now();
+  if (now - ws._joinWindowStart >= 60000) {
+    ws._joinWindowStart = now;
+    ws._joinAttempts = 0;
+  }
+  if (++ws._joinAttempts > MAX_JOIN_ATTEMPTS_PER_MINUTE) {
+    ws.send(JSON.stringify({ type: "error", message: "Too many join attempts. Wait a minute." }));
+    return;
+  }
+
   const code = (msg.code || "").toUpperCase();
   const room = rooms.get(code);
 
@@ -177,8 +211,9 @@ function handleJoinRoom(ws, msg) {
     return;
   }
 
-  const playerName = sanitizeName(msg.name) || `Player ${room.players.size + 1}`;
-  const playerId = room.players.size + 1;
+  // Monotonic per-room counter — size-based IDs collide after a leave/rejoin
+  const playerId = room.nextPlayerId++;
+  const playerName = sanitizeName(msg.name) || `Player ${playerId}`;
 
   ws.roomCode = code;
   ws.playerId = playerId;
@@ -315,7 +350,7 @@ function generateRoomCode() {
   do {
     code = "";
     for (let i = 0; i < 6; i++) {
-      code += chars[Math.floor(Math.random() * chars.length)];
+      code += chars[crypto.randomInt(chars.length)];
     }
   } while (rooms.has(code));
   return code;

@@ -7,7 +7,6 @@ export/web/*
 
 # Node modules
 server/node_modules/
-server/package-lock.json
 
 # Environment
 .env

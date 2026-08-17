@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   relay:
     build: ./server
@@ -8,6 +6,9 @@ services:
     restart: unless-stopped
     environment:
       - PORT=9090
+      # Bind all interfaces — a loopback bind inside the container is
+      # unreachable through the port mapping
+      - HOST=0.0.0.0
 
   # Static file server for the HTML5 game export
   web:

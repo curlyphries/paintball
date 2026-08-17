@@ -5,6 +5,11 @@ extends CharacterBody3D
 const WALK_SPEED := 4.0
 const SPRINT_SPEED := 6.5
 const GRAVITY := 16.7  # matches player.gd so everyone falls at the same rate
+const JUMP_VELOCITY := 5.9
+
+# Combat ranges — sized for the redesigned 50-60m maps
+const VISION_RANGE := 45.0
+const ENGAGE_RANGE := 38.0
 
 # AI State machine
 enum State { PATROL, CHASE, COVER, SHOOT, DEAD }
@@ -31,6 +36,10 @@ var state_timer := 0.0
 var wander_timer := 0.0
 var strafe_dir := 1.0  # 1 or -1 for strafing while shooting
 var strafe_timer := 0.0
+
+# Stuck detection — no navmesh, so bots escape geometry by detouring/hopping
+var _stuck_check_timer := 0.5
+var _stuck_ref_pos := Vector3.ZERO
 
 # Vision cache — avoid redundant raycasts per frame
 var _vision_cached := false
@@ -94,8 +103,22 @@ func _physics_process(delta: float) -> void:
 			process_cover(delta)
 		State.SHOOT:
 			process_shoot(delta)
-	
+
 	move_and_slide()
+
+	# Stuck escape: if we've been trying to move but barely displaced,
+	# hop (clears crates/low walls) and pick a fresh destination
+	_stuck_check_timer -= delta
+	if _stuck_check_timer <= 0.0:
+		var wanted_move := Vector2(velocity.x, velocity.z).length() > 1.0
+		var moved := global_position.distance_to(_stuck_ref_pos)
+		if wanted_move and moved < 0.3 and (state == State.PATROL or state == State.CHASE):
+			if is_on_floor():
+				velocity.y = JUMP_VELOCITY
+			pick_wander_target()
+			wander_timer = randf_range(2.0, 4.0)
+		_stuck_ref_pos = global_position
+		_stuck_check_timer = 0.6
 
 func process_patrol(delta: float) -> void:
 	# Pick a new wander target when timer runs out or we're close
@@ -131,7 +154,7 @@ func process_chase(delta: float) -> void:
 	look_at_target(delta)
 	
 	# If close enough and can see, shoot
-	if can_see_player() and dist < 25.0:
+	if can_see_player() and dist < ENGAGE_RANGE:
 		reaction_timer -= delta
 		if reaction_timer <= 0:
 			state = State.SHOOT
@@ -207,16 +230,19 @@ func can_see_player() -> bool:
 	return _raycast_check()
 
 func _raycast_check() -> bool:
+	# Direct-space query in global coordinates. (The old version assigned a
+	# global direction to sight_ray.target_position, which is local space —
+	# vision veered off-target whenever the bot was rotated.)
 	if target == null:
 		return false
-	var direction = (target.global_position + Vector3.UP * 1.0 - global_position - Vector3.UP * 1.5).normalized()
-	sight_ray.target_position = direction * 30.0
-	sight_ray.force_raycast_update()
-	if sight_ray.is_colliding():
-		var collider = sight_ray.get_collider()
-		if collider == target:
-			return true
-	return false
+	var from := global_position + Vector3.UP * 1.5
+	var to: Vector3 = target.global_position + Vector3.UP * 1.0
+	if from.distance_to(to) > VISION_RANGE:
+		return false
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	query.exclude = [get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	return hit and hit.get("collider") == target
 
 func look_at_target(delta: float) -> void:
 	if target == null:
@@ -229,6 +255,19 @@ func look_at_target(delta: float) -> void:
 		rotation.y = lerp_angle(rotation.y, angle, delta * 5.0)
 
 func pick_wander_target() -> void:
+	# Hunt bias: usually head toward an enemy's area so bots converge on the
+	# fight instead of wandering the corners of the big maps
+	var enemies: Array = []
+	for p in get_tree().get_nodes_in_group("player"):
+		if p != self and p.team != team and not p.is_dead:
+			enemies.append(p)
+	if not enemies.is_empty() and randf() < 0.6:
+		var e: Node3D = enemies.pick_random()
+		wander_target = e.global_position + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
+		wander_target.x = clampf(wander_target.x, MAP_MIN.x + 2, MAP_MAX.x - 2)
+		wander_target.z = clampf(wander_target.z, MAP_MIN.z + 2, MAP_MAX.z - 2)
+		wander_target.y = global_position.y
+		return
 	wander_target = Vector3(
 		randf_range(MAP_MIN.x + 2, MAP_MAX.x - 2),
 		global_position.y,
@@ -242,14 +281,27 @@ func move_toward_point(point: Vector3, speed: float, _delta: float) -> void:
 		velocity.x = 0
 		velocity.z = 0
 		return
-	
-	direction = direction.normalized()
+
+	direction = _steer_around_obstacles(direction.normalized())
 	velocity.x = direction.x * speed
 	velocity.z = direction.z * speed
-	
+
 	# Face movement direction
 	var angle = atan2(direction.x, direction.z)
 	rotation.y = lerp_angle(rotation.y, angle, 0.1)
+
+func _steer_around_obstacles(direction: Vector3) -> Vector3:
+	# Whisker probe: if the direct path is blocked within 2.5m, try rotated
+	# headings (nearest first, alternating sides) and take the first clear one
+	var space := get_world_3d().direct_space_state
+	var from := global_position + Vector3.UP * 1.2
+	for offset in [0.0, 0.6, -0.6, 1.2, -1.2]:
+		var probe_dir := direction.rotated(Vector3.UP, offset)
+		var query := PhysicsRayQueryParameters3D.create(from, from + probe_dir * 2.5)
+		query.exclude = [get_rid()]
+		if not space.intersect_ray(query):
+			return probe_dir
+	return direction  # fully boxed in — the stuck timer will hop us out
 
 func fire_at_target() -> void:
 	if target == null:
@@ -257,10 +309,15 @@ func fire_at_target() -> void:
 	
 	var weapon_data = GameState.get_weapon_data(weapon_name)
 	fire_cooldown = weapon_data.fire_rate
-	
-	# Calculate direction with inaccuracy
-	var aim_pos = target.global_position + Vector3.UP * 1.0
-	var direction = (aim_pos - global_position - Vector3.UP * 1.5).normalized()
+
+	# Calculate direction with target leading — aim where they'll be when
+	# the paintball arrives, not where they are
+	var eye := global_position + Vector3.UP * 1.5
+	var aim_pos: Vector3 = target.global_position + Vector3.UP * 1.0
+	if target is CharacterBody3D:
+		var lead_time: float = eye.distance_to(aim_pos) / weapon_data.speed
+		aim_pos += Vector3(target.velocity.x, 0, target.velocity.z) * lead_time * 0.9
+	var direction = (aim_pos - eye).normalized()
 	
 	# Add inaccuracy based on bot accuracy
 	var inaccuracy = (1.0 - accuracy) * 0.1

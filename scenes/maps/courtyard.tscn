@@ -1,204 +1,406 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=27 format=3 uid="uid://b3ctrycourty1"]
+
+[ext_resource type="PackedScene" uid="uid://b4xmapenviron0" path="res://scenes/maps/_environment.tscn" id="1_env"]
+[ext_resource type="Resource" path="res://assets/themes/sunlit.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://assets/models/wall_high.glb" id="3_wallhi"]
+[ext_resource type="PackedScene" path="res://assets/models/wall_low.glb" id="4_walllo"]
+[ext_resource type="PackedScene" path="res://assets/models/platform_large.glb" id="5_platlg"]
+[ext_resource type="PackedScene" path="res://assets/models/platform.glb" id="6_platsm"]
 
 [sub_resource type="StandardMaterial3D" id="mat_ground"]
-albedo_color = Color(0.35, 0.4, 0.3, 1)
+albedo_color = Color(0.50, 0.42, 0.30, 1)
+roughness = 0.95
 
-[sub_resource type="StandardMaterial3D" id="mat_wall"]
-albedo_color = Color(0.55, 0.5, 0.45, 1)
+[sub_resource type="StandardMaterial3D" id="mat_terrace"]
+albedo_color = Color(0.62, 0.52, 0.36, 1)
+roughness = 0.9
 
-[sub_resource type="StandardMaterial3D" id="mat_stone"]
-albedo_color = Color(0.45, 0.45, 0.42, 1)
+[sub_resource type="StandardMaterial3D" id="mat_wall_primary"]
+albedo_color = Color(0.78, 0.68, 0.50, 1)
+roughness = 0.92
 
-[sub_resource type="StandardMaterial3D" id="mat_wood"]
-albedo_color = Color(0.55, 0.35, 0.2, 1)
+[sub_resource type="StandardMaterial3D" id="mat_wall_accent"]
+albedo_color = Color(0.90, 0.75, 0.55, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_terracotta"]
+albedo_color = Color(0.85, 0.40, 0.25, 1)
+roughness = 0.85
 
 [sub_resource type="StandardMaterial3D" id="mat_hedge"]
-albedo_color = Color(0.2, 0.45, 0.15, 1)
+albedo_color = Color(0.30, 0.55, 0.30, 1)
+roughness = 0.9
 
-[sub_resource type="StandardMaterial3D" id="mat_fountain"]
-albedo_color = Color(0.4, 0.5, 0.55, 1)
+[sub_resource type="StandardMaterial3D" id="mat_stone"]
+albedo_color = Color(0.60, 0.55, 0.48, 1)
+roughness = 0.85
 
-[sub_resource type="NavigationMesh" id="NavigationMesh_cy"]
+[sub_resource type="StandardMaterial3D" id="mat_fountain_water"]
+albedo_color = Color(0.20, 0.55, 0.85, 1)
+emission_enabled = true
+emission = Color(0.20, 0.55, 0.85, 1)
+emission_energy_multiplier = 0.6
+metallic = 0.3
+roughness = 0.2
+
+[sub_resource type="StandardMaterial3D" id="mat_emission_cyan"]
+albedo_color = Color(0.20, 0.85, 0.95, 1)
+emission_enabled = true
+emission = Color(0.20, 0.85, 0.95, 1)
+emission_energy_multiplier = 1.4
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_ct"]
 agent_radius = 0.4
 agent_height = 1.8
-agent_max_climb = 0.3
+agent_max_climb = 0.4
+
+[sub_resource type="BoxShape3D" id="shape_wallhigh"]
+size = Vector3(2.0, 2.0, 0.4)
+
+[sub_resource type="BoxShape3D" id="shape_walllow"]
+size = Vector3(2.0, 1.0, 0.4)
+
+[sub_resource type="BoxShape3D" id="shape_platlg"]
+size = Vector3(8.0, 0.4, 4.0)
+
+[sub_resource type="BoxShape3D" id="shape_platsm"]
+size = Vector3(4.0, 0.4, 4.0)
 
 [node name="Courtyard" type="Node3D"]
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
-navigation_mesh = SubResource("NavigationMesh_cy")
+[node name="MapEnvironment" parent="." instance=ExtResource("1_env")]
+theme = ExtResource("2_theme")
 
-[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D"]
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavigationMesh_ct")
+
+[node name="Floor" type="CSGBox3D" parent="NavigationRegion3D" groups=["floor"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
 use_collision = true
 collision_layer = 1
-size = Vector3(44, 0.5, 34)
+size = Vector3(60, 0.5, 60)
 material = SubResource("mat_ground")
 
 [node name="WallNorth" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, -17.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -30.25)
 use_collision = true
 collision_layer = 1
-size = Vector3(44, 3.5, 0.5)
-material = SubResource("mat_wall")
+size = Vector3(60, 5, 0.5)
+material = SubResource("mat_wall_primary")
 
 [node name="WallSouth" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.75, 17.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 30.25)
 use_collision = true
 collision_layer = 1
-size = Vector3(44, 3.5, 0.5)
-material = SubResource("mat_wall")
+size = Vector3(60, 5, 0.5)
+material = SubResource("mat_wall_primary")
 
 [node name="WallEast" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22.25, 1.75, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30.25, 2.5, 0)
 use_collision = true
 collision_layer = 1
-size = Vector3(0.5, 3.5, 34)
-material = SubResource("mat_wall")
+size = Vector3(0.5, 5, 60)
+material = SubResource("mat_wall_primary")
 
 [node name="WallWest" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.25, 1.75, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30.25, 2.5, 0)
 use_collision = true
 collision_layer = 1
-size = Vector3(0.5, 3.5, 34)
-material = SubResource("mat_wall")
+size = Vector3(0.5, 5, 60)
+material = SubResource("mat_wall_primary")
 
-[node name="Fountain" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
-use_collision = true
-collision_layer = 1
+[node name="WallTrimNorth" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall_accent"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.0, -30.0)
+size = Vector3(60, 0.5, 0.1)
+material = SubResource("mat_terracotta")
+
+[node name="WallTrimSouth" type="CSGBox3D" parent="NavigationRegion3D" groups=["wall_accent"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.0, 30.0)
+size = Vector3(60, 0.5, 0.1)
+material = SubResource("mat_terracotta")
+
+[node name="FountainBasin" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["landmark"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+height = 0.8
+radius = 3.0
+sides = 24
+material = SubResource("mat_stone")
+
+[node name="FountainWell" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["landmark"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+height = 0.5
 radius = 2.5
-height = 1.0
-material = SubResource("mat_fountain")
+sides = 24
+material = SubResource("mat_fountain_water")
+operation = 2
 
-[node name="FountainCenter" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["obstacle"]]
+[node name="FountainCenter" type="CSGCylinder3D" parent="NavigationRegion3D" groups=["landmark", "obstacle"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 use_collision = true
 collision_layer = 1
-radius = 0.4
 height = 3.0
+radius = 0.6
+sides = 12
 material = SubResource("mat_stone")
 
-[node name="HedgeNW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.75, -8)
+[node name="FountainRingN" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -3.5)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/FountainRingN" instance=ExtResource("4_walllo")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/FountainRingN"]
+shape = SubResource("shape_walllow")
+
+[node name="FountainRingS" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 3.5)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/FountainRingS" instance=ExtResource("4_walllo")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/FountainRingS"]
+shape = SubResource("shape_walllow")
+
+[node name="TerraceNorth" type="StaticBody3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.25, -22)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/TerraceNorth" instance=ExtResource("5_platlg")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/TerraceNorth"]
+shape = SubResource("shape_platlg")
+
+[node name="TerraceNorth2" type="StaticBody3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.25, -22)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/TerraceNorth2" instance=ExtResource("5_platlg")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/TerraceNorth2"]
+shape = SubResource("shape_platlg")
+
+[node name="TerraceSouth" type="StaticBody3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.25, 22)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/TerraceSouth" instance=ExtResource("5_platlg")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/TerraceSouth"]
+shape = SubResource("shape_platlg")
+
+[node name="TerraceSouth2" type="StaticBody3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 1.25, 22)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/TerraceSouth2" instance=ExtResource("5_platlg")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/TerraceSouth2"]
+shape = SubResource("shape_platlg")
+
+[node name="StairsNorth" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(0.97, 0.243, 0, -0.243, 0.97, 0, 0, 0, 1, 0, 0.85, -22)
 use_collision = true
 collision_layer = 1
-size = Vector3(6, 1.5, 1)
+size = Vector3(4.0, 0.2, 4.0)
+material = SubResource("mat_terrace")
+
+[node name="StairsSouth" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
+transform = Transform3D(0.97, -0.243, 0, 0.243, 0.97, 0, 0, 0, 1, 0, 0.85, 22)
+use_collision = true
+collision_layer = 1
+size = Vector3(4.0, 0.2, 4.0)
+material = SubResource("mat_terrace")
+
+[node name="HedgeRowW1" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0.6, -8)
+use_collision = true
+collision_layer = 1
+size = Vector3(0.8, 1.2, 6)
 material = SubResource("mat_hedge")
 
-[node name="HedgeNE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.75, -8)
+[node name="HedgeRowW2" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0.6, 8)
 use_collision = true
 collision_layer = 1
-size = Vector3(6, 1.5, 1)
+size = Vector3(0.8, 1.2, 6)
 material = SubResource("mat_hedge")
 
-[node name="HedgeSW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0.75, 8)
+[node name="HedgeRowE1" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0.6, -8)
 use_collision = true
 collision_layer = 1
-size = Vector3(6, 1.5, 1)
+size = Vector3(0.8, 1.2, 6)
 material = SubResource("mat_hedge")
 
-[node name="HedgeSE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.75, 8)
+[node name="HedgeRowE2" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0.6, 8)
 use_collision = true
 collision_layer = 1
-size = Vector3(6, 1.5, 1)
+size = Vector3(0.8, 1.2, 6)
 material = SubResource("mat_hedge")
 
-[node name="WallMidN" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, -12)
+[node name="HedgeMidN" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, -12)
 use_collision = true
 collision_layer = 1
-size = Vector3(8, 2.0, 0.5)
-material = SubResource("mat_stone")
+size = Vector3(6, 1.2, 0.8)
+material = SubResource("mat_hedge")
 
-[node name="WallMidS" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 12)
+[node name="HedgeMidS" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 12)
 use_collision = true
 collision_layer = 1
-size = Vector3(8, 2.0, 0.5)
-material = SubResource("mat_stone")
+size = Vector3(6, 1.2, 0.8)
+material = SubResource("mat_hedge")
 
-[node name="WallMidE" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 1.0, 0)
-use_collision = true
+[node name="WallHigh1" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, -14)
 collision_layer = 1
-size = Vector3(0.5, 2.0, 6)
-material = SubResource("mat_stone")
 
-[node name="WallMidW" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 1.0, 0)
-use_collision = true
-collision_layer = 1
-size = Vector3(0.5, 2.0, 6)
-material = SubResource("mat_stone")
+[node name="Visual" parent="NavigationRegion3D/WallHigh1" instance=ExtResource("3_wallhi")]
 
-[node name="Bench1" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0.4, -4)
-use_collision = true
-collision_layer = 1
-size = Vector3(2, 0.8, 0.6)
-material = SubResource("mat_wood")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/WallHigh1"]
+shape = SubResource("shape_wallhigh")
 
-[node name="Bench2" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.4, 4)
-use_collision = true
+[node name="WallHigh2" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 1, -14)
 collision_layer = 1
-size = Vector3(2, 0.8, 0.6)
-material = SubResource("mat_wood")
 
-[node name="Pillar1" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1.75, -14)
-use_collision = true
-collision_layer = 1
-size = Vector3(0.8, 3.5, 0.8)
-material = SubResource("mat_stone")
+[node name="Visual" parent="NavigationRegion3D/WallHigh2" instance=ExtResource("3_wallhi")]
 
-[node name="Pillar2" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.75, -14)
-use_collision = true
-collision_layer = 1
-size = Vector3(0.8, 3.5, 0.8)
-material = SubResource("mat_stone")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/WallHigh2"]
+shape = SubResource("shape_wallhigh")
 
-[node name="Pillar3" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1.75, 14)
-use_collision = true
+[node name="WallHigh3" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 1, 14)
 collision_layer = 1
-size = Vector3(0.8, 3.5, 0.8)
-material = SubResource("mat_stone")
 
-[node name="Pillar4" type="CSGBox3D" parent="NavigationRegion3D" groups=["obstacle"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1.75, 14)
+[node name="Visual" parent="NavigationRegion3D/WallHigh3" instance=ExtResource("3_wallhi")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/WallHigh3"]
+shape = SubResource("shape_wallhigh")
+
+[node name="PlanterNW" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.5, -6)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/PlanterNW" instance=ExtResource("4_walllo")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/PlanterNW"]
+shape = SubResource("shape_walllow")
+
+[node name="PlanterNE" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0.5, -6)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/PlanterNE" instance=ExtResource("4_walllo")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/PlanterNE"]
+shape = SubResource("shape_walllow")
+
+[node name="PlanterSW" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.5, 6)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/PlanterSW" instance=ExtResource("4_walllo")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/PlanterSW"]
+shape = SubResource("shape_walllow")
+
+[node name="PlanterSE" type="StaticBody3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0.5, 6)
+collision_layer = 1
+
+[node name="Visual" parent="NavigationRegion3D/PlanterSE" instance=ExtResource("4_walllo")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationRegion3D/PlanterSE"]
+shape = SubResource("shape_walllow")
+
+[node name="StallNW" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 1, -8)
 use_collision = true
 collision_layer = 1
-size = Vector3(0.8, 3.5, 0.8)
-material = SubResource("mat_stone")
+size = Vector3(2.5, 2, 1.5)
+material = SubResource("mat_terracotta")
+
+[node name="StallNE" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 1, -8)
+use_collision = true
+collision_layer = 1
+size = Vector3(2.5, 2, 1.5)
+material = SubResource("mat_terracotta")
+
+[node name="StallSW" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -25, 1, 8)
+use_collision = true
+collision_layer = 1
+size = Vector3(2.5, 2, 1.5)
+material = SubResource("mat_terracotta")
+
+[node name="StallSE" type="CSGBox3D" parent="NavigationRegion3D" groups=["cover", "obstacle"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 1, 8)
+use_collision = true
+collision_layer = 1
+size = Vector3(2.5, 2, 1.5)
+material = SubResource("mat_terracotta")
+
+[node name="LanternNW" type="OmniLight3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 4, -22)
+light_color = Color(1.0, 0.75, 0.45, 1)
+light_energy = 0.9
+omni_range = 14.0
+
+[node name="LanternNE" type="OmniLight3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 4, -22)
+light_color = Color(1.0, 0.75, 0.45, 1)
+light_energy = 0.9
+omni_range = 14.0
+
+[node name="LanternSW" type="OmniLight3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 4, 22)
+light_color = Color(1.0, 0.75, 0.45, 1)
+light_energy = 0.9
+omni_range = 14.0
+
+[node name="LanternSE" type="OmniLight3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 4, 22)
+light_color = Color(1.0, 0.75, 0.45, 1)
+light_energy = 0.9
+omni_range = 14.0
+
+[node name="FountainGlow" type="OmniLight3D" parent="NavigationRegion3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+light_color = Color(0.20, 0.85, 0.95, 1)
+light_energy = 1.2
+omni_range = 8.0
+
+[node name="EmissiveTrim" type="CSGBox3D" parent="NavigationRegion3D" groups=["emission"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.06, 0)
+size = Vector3(60, 0.05, 0.15)
+material = SubResource("mat_emission_cyan")
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 
 [node name="Spawn1" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0.5, -14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0.5, -27)
 
 [node name="Spawn2" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.5, -14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.5, -27)
 
 [node name="Spawn3" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0.5, 14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0.5, 27)
 
 [node name="Spawn4" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.5, 14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.5, 27)
 
 [node name="Spawn5" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -27, 0.5, 0)
 
 [node name="Spawn6" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 14)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27, 0.5, 0)
 
 [node name="Spawn7" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, -27)
 
 [node name="Spawn8" type="Marker3D" parent="SpawnPoints" groups=["spawn_point"]]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 0.5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 27)

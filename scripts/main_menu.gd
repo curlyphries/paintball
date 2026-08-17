@@ -88,12 +88,14 @@ func _ready() -> void:
 # ---- Settings controls population ----
 
 func _populate_settings_controls() -> void:
-	# Game modes
+	# Game modes — item IDs map to GameSettings.GameMode values so display
+	# order is independent of the enum. CTF is hidden until it's implemented.
 	mode_option.clear()
-	mode_option.add_item("Team vs Team", 0)
-	mode_option.add_item("Deathmatch", 1)
-	mode_option.add_item("Capture the Flag", 2)
-	mode_option.selected = GameSettings.game_mode
+	mode_option.add_item("Team vs Team", GameSettings.GameMode.TEAM_VS_TEAM)
+	mode_option.add_item("Deathmatch", GameSettings.GameMode.DEATHMATCH)
+	if GameSettings.game_mode == GameSettings.GameMode.CAPTURE_THE_FLAG:
+		GameSettings.game_mode = GameSettings.GameMode.TEAM_VS_TEAM
+	mode_option.select(mode_option.get_item_index(GameSettings.game_mode))
 	
 	# Map pool — one checkbox per available map
 	for child in map_pool_container.get_children():
@@ -188,7 +190,7 @@ func _update_map_description() -> void:
 		map_desc_label.text = "%d maps in pool" % keys.size()
 
 func _apply_settings() -> void:
-	GameSettings.game_mode = mode_option.selected as GameSettings.GameMode
+	GameSettings.game_mode = mode_option.get_selected_id() as GameSettings.GameMode
 	var pool := _selected_map_keys()
 	if pool.is_empty():
 		# Constraint should prevent this, but be defensive.

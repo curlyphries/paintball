@@ -45,19 +45,20 @@ func _send_local_state() -> void:
 	}
 	NetworkManager.send_game_data(state)
 
-func send_shoot(origin: Vector3, direction: Vector3, color: Color) -> void:
+func send_shoot(origin: Vector3, direction: Vector3, color: Color, speed: float) -> void:
 	NetworkManager.send_game_data({
 		"action": "shoot",
 		"origin": [origin.x, origin.y, origin.z],
 		"dir": [direction.x, direction.y, direction.z],
 		"color": [color.r, color.g, color.b],
+		"speed": speed,
 	})
 
-func send_elimination(victim_id: int) -> void:
+func send_elimination(victim_id: int, killer_id: int) -> void:
 	NetworkManager.send_game_data({
 		"action": "eliminated",
 		"victim_id": victim_id,
-		"killer_id": NetworkManager.local_player_id,
+		"killer_id": killer_id,
 	})
 
 # Map vote / rotation RPCs. game_sync is freed during the post-match scene, so
@@ -107,8 +108,11 @@ func _spawn_remote_projectile(from_id: int, data: Dictionary) -> void:
 	var dir = Vector3(data.dir[0], data.dir[1], data.dir[2])
 	var color = Color(data.color[0], data.color[1], data.color[2])
 	
+	var speed = float(data.get("speed", 40.0))
 	var projectile = preload("res://scenes/projectile.tscn").instantiate()
-	projectile.initialize(dir, 40.0, color, from_id, null)
+	# Pass the shooter's puppet as owner so the shot can't collide with it
+	# (the puppet lags behind its true position due to interpolation)
+	projectile.initialize(dir, speed, color, from_id, net_players.get(from_id))
 	var world = get_node_or_null("/root/Main/World")
 	if world:
 		world.add_child(projectile)

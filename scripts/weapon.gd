@@ -31,22 +31,34 @@ func _process(delta: float) -> void:
 			finish_reload()
 
 func can_fire() -> bool:
-	return fire_cooldown <= 0 and not is_reloading
+	return fire_cooldown <= 0 and not is_reloading and current_ammo > 0
 
 func fire(origin: Vector3, direction: Vector3) -> void:
+	if fire_cooldown <= 0 and not is_reloading and current_ammo <= 0:
+		start_reload()
+		return
 	if not can_fire():
 		return
-	
+
 	fire_cooldown = weapon_data.fire_rate
-	
+	# One trigger pull consumes one round, even for multi-pellet weapons
+	current_ammo -= 1
+	ammo_changed.emit(current_ammo, weapon_data.magazine)
+
 	# Fire pellets (shotgun fires multiple)
+	# Spread rotates around the aim direction's own up/right axes so the
+	# cone is uniform no matter which way the shooter faces
+	var aim_basis := Basis.looking_at(direction.normalized())
 	for i in range(weapon_data.pellets):
 		var spread_dir = direction
 		if weapon_data.spread > 0:
-			spread_dir = spread_dir.rotated(Vector3.UP, randf_range(-weapon_data.spread, weapon_data.spread))
-			spread_dir = spread_dir.rotated(Vector3.RIGHT, randf_range(-weapon_data.spread, weapon_data.spread))
+			spread_dir = spread_dir.rotated(aim_basis.y, randf_range(-weapon_data.spread, weapon_data.spread))
+			spread_dir = spread_dir.rotated(aim_basis.x, randf_range(-weapon_data.spread, weapon_data.spread))
 		
 		fired.emit(origin, spread_dir.normalized(), weapon_data.speed, weapon_data.color)
+
+	if current_ammo <= 0:
+		start_reload()
 
 func start_reload() -> void:
 	if is_reloading or current_ammo == weapon_data.magazine:

@@ -185,7 +185,7 @@ func _on_player_eliminated(p: Player, killer_id: int) -> void:
 	hud.show_elimination_message(killer_name + " shot You")
 	
 	if is_networked and game_sync:
-		game_sync.send_elimination(NetworkManager.local_player_id)
+		game_sync.send_elimination(NetworkManager.local_player_id, killer_id)
 	
 	# Deathmatch: auto-respawn after delay
 	if is_deathmatch and not GameState.is_match_over():

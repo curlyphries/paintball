@@ -170,7 +170,8 @@ func process_shoot(delta: float) -> void:
 	velocity.z = right.z * strafe_dir * WALK_SPEED * 0.5
 	
 	if can_see_player():
-		if fire_cooldown <= 0:
+		# Only fire while the round is live — no countdown kills
+		if fire_cooldown <= 0 and GameState.match_phase == GameState.MatchPhase.PLAYING:
 			fire_at_target()
 	else:
 		# Lost sight, chase
@@ -278,7 +279,7 @@ func _on_weapon_fired(pos: Vector3, direction: Vector3, spd: float, color: Color
 	projectile.initialize(direction, spd, color, player_id, self)
 	# Add to tree first, then set position (global_position requires being in tree)
 	get_tree().root.get_node("Main/World").add_child(projectile)
-	projectile.global_position = global_position + Vector3.UP * 1.5 + direction * 1.0
+	projectile.global_position = global_position + Vector3.UP * 1.5 + direction * 0.3
 	
 	# Play shoot sound
 	if shoot_sound:

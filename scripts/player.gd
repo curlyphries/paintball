@@ -213,28 +213,34 @@ func respawn(spawn_position: Vector3) -> void:
 	global_position = spawn_position
 	velocity = Vector3.ZERO
 
-func _process(_delta: float) -> void:
+const MELEE_RANGE := 2.0
+const MELEE_COOLDOWN := 1.0
+var _melee_cooldown := 0.0
+
+func _process(delta: float) -> void:
 	if is_dead:
 		return
 	if _is_chat_active():
 		return
-	
-	# Melee range check — if a bot is right on top of us, next shot eliminates them
-	if Input.is_action_just_pressed("shoot"):
-		var bots = get_tree().get_nodes_in_group("bot")
-		for bot in bots:
-			if bot.is_dead:
-				continue
-			var dist = global_position.distance_to(bot.global_position)
-			if dist < 2.5:
-				bot.take_hit(player_id)
-	
+
+	if _melee_cooldown > 0.0:
+		_melee_cooldown -= delta
+
+	# Combat only while the round is live — no countdown/round-over kills
+	var can_fight: bool = GameState.match_phase == GameState.MatchPhase.PLAYING
+
+	# Melee — close-range finisher, but only on a target you're facing
+	# with clear line of sight, on a cooldown
+	if can_fight and _melee_cooldown <= 0.0 and Input.is_action_just_pressed("shoot"):
+		if _try_melee():
+			_melee_cooldown = MELEE_COOLDOWN
+
 	# Shooting
-	if Input.is_action_pressed("shoot"):
+	if can_fight and Input.is_action_pressed("shoot"):
 		var origin = camera_pivot.global_position
 		var direction = -camera_pivot.global_transform.basis.z
 		weapon.fire(origin, direction)
-	
+
 	# Reload
 	if Input.is_action_just_pressed("reload"):
 		weapon.start_reload()
@@ -257,6 +263,28 @@ func _process(_delta: float) -> void:
 		current_weapon_index = (current_weapon_index - 1 + available_weapons.size()) % available_weapons.size()
 		switch_weapon(current_weapon_index)
 
+func _try_melee() -> bool:
+	var aim_dir := -camera_pivot.global_transform.basis.z
+	for bot in get_tree().get_nodes_in_group("bot"):
+		if bot.is_dead:
+			continue
+		var to_bot: Vector3 = bot.global_position - global_position
+		if to_bot.length() > MELEE_RANGE:
+			continue
+		# Must be facing the target (within ~60 degrees of aim)
+		if aim_dir.dot(to_bot.normalized()) < 0.5:
+			continue
+		# Must have clear line of sight (no walls between)
+		var query := PhysicsRayQueryParameters3D.create(
+			camera_pivot.global_position, bot.global_position + Vector3.UP * 0.5)
+		query.exclude = [get_rid()]
+		var hit := get_world_3d().direct_space_state.intersect_ray(query)
+		if hit and hit.collider != bot:
+			continue
+		bot.take_hit(player_id)
+		return true
+	return false
+
 func switch_weapon(index: int) -> void:
 	if index < 0 or index >= available_weapons.size():
 		return
@@ -271,13 +299,15 @@ func _on_weapon_fired(pos: Vector3, direction: Vector3, spd: float, color: Color
 	projectile.initialize(direction, spd, color, player_id, self)
 	# Add to tree first, then set position (global_position requires being in tree)
 	get_tree().root.get_node("Main/World").add_child(projectile)
-	var spawn_pos = pos + direction.normalized() * 1.0
+	# Spawn at the muzzle — the collision exception prevents self-hits,
+	# so no dead zone is needed
+	var spawn_pos = pos + direction.normalized() * 0.3
 	projectile.global_position = spawn_pos
-	
+
 	# Broadcast shot over network
 	var game_sync = get_node_or_null("/root/Main/GameSync")
 	if game_sync:
-		game_sync.send_shoot(spawn_pos, direction, color)
+		game_sync.send_shoot(spawn_pos, direction, color, spd)
 	
 	# Play shoot sound
 	if shoot_sound:

@@ -7,7 +7,6 @@ var owner_id := -1
 var paint_color := Color.YELLOW
 var lifetime := 3.0
 var owner_node: Node = null
-var spawn_delay := 0.05  # Brief delay before collision enabled
 
 @onready var mesh: MeshInstance3D = $MeshInstance3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
@@ -28,12 +27,10 @@ func _ready() -> void:
 		mat.emission_energy_multiplier = 2.0
 		_mat_cache[key] = mat
 		mesh.material_override = mat
-	
-	# Disable collision briefly so we don't hit the shooter
-	collision_shape.disabled = true
-	await get_tree().create_timer(spawn_delay).timeout
-	if is_instance_valid(self):
-		collision_shape.disabled = false
+
+	# Never collide with the shooter — lets shots connect at point-blank range
+	if owner_node is PhysicsBody3D:
+		add_collision_exception_with(owner_node)
 
 func initialize(dir: Vector3, spd: float, color: Color, shooter_id: int, shooter: Node = null) -> void:
 	direction = dir.normalized()
@@ -51,20 +48,9 @@ func _physics_process(delta: float) -> void:
 	
 	# Apply gravity to paintball
 	velocity.y -= 9.8 * delta * 0.3  # Slight drop
-	
-	# If collision disabled (spawn delay), just move by position
-	if collision_shape.disabled:
-		global_position += velocity * delta
-		return
-	
+
 	var collision_info = move_and_collide(velocity * delta)
 	if collision_info:
-		var collider = collision_info.get_collider()
-		# Skip if we hit our own shooter
-		if collider == owner_node:
-			# Move past the shooter
-			global_position += velocity * delta
-			return
 		_on_hit(collision_info)
 
 func _on_hit(collision_info: KinematicCollision3D) -> void:

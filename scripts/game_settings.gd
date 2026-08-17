@@ -16,6 +16,23 @@ var game_mode: GameMode = GameMode.TEAM_VS_TEAM
 var bot_count: int = 3  # 0 = no bots
 var bots_enabled: bool = true
 
+# --- Bot difficulty ---
+enum BotDifficulty { EASY, NORMAL, HARD }
+var bot_difficulty: int = BotDifficulty.NORMAL
+
+# Per-difficulty tuning applied at spawn. accuracy/reaction are [min, max]
+# ranges randomized per bot so a squad doesn't feel like clones. lead is the
+# fraction of target velocity the bot aims ahead by, fire_mult scales weapon
+# cooldown (higher = slower shooting).
+const BOT_DIFFICULTY_PRESETS := {
+	BotDifficulty.EASY: {"name": "Easy", "accuracy": [0.3, 0.5], "reaction": [0.9, 1.4], "lead": 0.25, "vision": 32.0, "engage": 24.0, "fire_mult": 1.6},
+	BotDifficulty.NORMAL: {"name": "Normal", "accuracy": [0.45, 0.65], "reaction": [0.55, 0.95], "lead": 0.55, "vision": 40.0, "engage": 32.0, "fire_mult": 1.25},
+	BotDifficulty.HARD: {"name": "Hard", "accuracy": [0.6, 0.85], "reaction": [0.3, 0.55], "lead": 0.85, "vision": 45.0, "engage": 38.0, "fire_mult": 1.0},
+}
+
+func get_bot_preset() -> Dictionary:
+	return BOT_DIFFICULTY_PRESETS.get(bot_difficulty, BOT_DIFFICULTY_PRESETS[BotDifficulty.NORMAL])
+
 # --- Map ---
 const AVAILABLE_MAPS: Dictionary = {
 	"warehouse": {
@@ -147,6 +164,7 @@ func apply_volume() -> void:
 func save_prefs() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("audio", "master_volume", master_volume)
+	cfg.set_value("bots", "difficulty", bot_difficulty)
 	cfg.save(PREFS_PATH)
 
 func load_prefs() -> void:
@@ -154,12 +172,14 @@ func load_prefs() -> void:
 	if cfg.load(PREFS_PATH) != OK:
 		return
 	master_volume = clampf(float(cfg.get_value("audio", "master_volume", 1.0)), 0.0, 1.0)
+	bot_difficulty = clampi(int(cfg.get_value("bots", "difficulty", BotDifficulty.NORMAL)), BotDifficulty.EASY, BotDifficulty.HARD)
 	apply_volume()
 
 func reset_to_defaults() -> void:
 	game_mode = GameMode.TEAM_VS_TEAM
 	bot_count = 3
 	bots_enabled = true
+	bot_difficulty = BotDifficulty.NORMAL
 	map_pool.assign(["warehouse", "courtyard", "arena"])
 	current_map = "warehouse"
 	rotation_mode = RotationMode.VOTE

@@ -7,9 +7,11 @@ const SPRINT_SPEED := 6.5
 const GRAVITY := 16.7  # matches player.gd so everyone falls at the same rate
 const JUMP_VELOCITY := 5.9
 
-# Combat ranges — sized for the redesigned 50-60m maps
-const VISION_RANGE := 45.0
-const ENGAGE_RANGE := 38.0
+# Combat tuning — overwritten from GameSettings.get_bot_preset() at spawn
+var vision_range := 40.0
+var engage_range := 32.0
+var lead_factor := 0.55   # fraction of target velocity aimed ahead
+var fire_mult := 1.25     # weapon cooldown multiplier (higher = slower)
 
 # AI State machine
 enum State { PATROL, CHASE, COVER, SHOOT, DEAD }
@@ -154,7 +156,7 @@ func process_chase(delta: float) -> void:
 	look_at_target(delta)
 	
 	# If close enough and can see, shoot
-	if can_see_player() and dist < ENGAGE_RANGE:
+	if can_see_player() and dist < engage_range:
 		reaction_timer -= delta
 		if reaction_timer <= 0:
 			state = State.SHOOT
@@ -237,7 +239,7 @@ func _raycast_check() -> bool:
 		return false
 	var from := global_position + Vector3.UP * 1.5
 	var to: Vector3 = target.global_position + Vector3.UP * 1.0
-	if from.distance_to(to) > VISION_RANGE:
+	if from.distance_to(to) > vision_range:
 		return false
 	var query := PhysicsRayQueryParameters3D.create(from, to)
 	query.exclude = [get_rid()]
@@ -308,7 +310,7 @@ func fire_at_target() -> void:
 		return
 	
 	var weapon_data = GameState.get_weapon_data(weapon_name)
-	fire_cooldown = weapon_data.fire_rate
+	fire_cooldown = weapon_data.fire_rate * fire_mult
 
 	# Calculate direction with target leading — aim where they'll be when
 	# the paintball arrives, not where they are
@@ -316,7 +318,7 @@ func fire_at_target() -> void:
 	var aim_pos: Vector3 = target.global_position + Vector3.UP * 1.0
 	if target is CharacterBody3D:
 		var lead_time: float = eye.distance_to(aim_pos) / weapon_data.speed
-		aim_pos += Vector3(target.velocity.x, 0, target.velocity.z) * lead_time * 0.9
+		aim_pos += Vector3(target.velocity.x, 0, target.velocity.z) * lead_time * lead_factor
 	var direction = (aim_pos - eye).normalized()
 	
 	# Add inaccuracy based on bot accuracy

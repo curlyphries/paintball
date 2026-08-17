@@ -119,8 +119,13 @@ func _spawn_bots(count: int, start_id: int) -> void:
 		# In deathmatch all bots are independent teams, otherwise team 1
 		bot.team = (start_id + i) if is_deathmatch else 1
 		bot.bot_name = "Bot " + str(i + 1)
-		bot.accuracy = randf_range(0.5, 0.85)
-		bot.reaction_time = randf_range(0.3, 0.8)
+		var preset = GameSettings.get_bot_preset()
+		bot.accuracy = randf_range(preset.accuracy[0], preset.accuracy[1])
+		bot.reaction_time = randf_range(preset.reaction[0], preset.reaction[1])
+		bot.lead_factor = preset.lead
+		bot.vision_range = preset.vision
+		bot.engage_range = preset.engage
+		bot.fire_mult = preset.fire_mult
 		bot.MAP_MIN = map_bounds[0]
 		bot.MAP_MAX = map_bounds[1]
 		bot.eliminated.connect(_on_bot_eliminated)

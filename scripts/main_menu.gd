@@ -42,6 +42,7 @@ const AUTO_START_SECONDS := 30
 var _countdown_active := false
 var _countdown_remaining := 0
 var _settings_mode := ""  # "solo" or "create" — what happens after settings confirm
+var difficulty_option: OptionButton = null  # built in code, lives under BotsRow's VBox
 
 func _ready() -> void:
 	play_solo_btn.pressed.connect(_on_play_solo)
@@ -96,6 +97,23 @@ func _populate_settings_controls() -> void:
 	if GameSettings.game_mode == GameSettings.GameMode.CAPTURE_THE_FLAG:
 		GameSettings.game_mode = GameSettings.GameMode.TEAM_VS_TEAM
 	mode_option.select(mode_option.get_item_index(GameSettings.game_mode))
+
+	# Bot difficulty — built in code (scene has no node for it yet), placed
+	# right after the bots slider
+	if difficulty_option == null:
+		var vbox := bots_slider.get_parent()
+		var row := HBoxContainer.new()
+		var lbl := Label.new()
+		lbl.text = "Bot Difficulty"
+		row.add_child(lbl)
+		difficulty_option = OptionButton.new()
+		difficulty_option.custom_minimum_size.x = 160
+		for d in GameSettings.BOT_DIFFICULTY_PRESETS:
+			difficulty_option.add_item(GameSettings.BOT_DIFFICULTY_PRESETS[d].name, d)
+		row.add_child(difficulty_option)
+		vbox.add_child(row)
+		vbox.move_child(row, bots_slider.get_index() + 1)
+	difficulty_option.select(difficulty_option.get_item_index(GameSettings.bot_difficulty))
 	
 	# Map pool — one checkbox per available map
 	for child in map_pool_container.get_children():
@@ -201,6 +219,9 @@ func _apply_settings() -> void:
 	GameSettings.rotation_mode = rotation_option.selected
 	GameSettings.bots_enabled = bots_check.button_pressed
 	GameSettings.bot_count = int(bots_slider.value)
+	if difficulty_option:
+		GameSettings.bot_difficulty = difficulty_option.get_selected_id()
+	GameSettings.save_prefs()
 	var tl_idx = time_limit_option.selected
 	if tl_idx >= 0 and tl_idx < GameSettings.TIME_LIMIT_OPTIONS.size():
 		GameSettings.time_limit_minutes = GameSettings.TIME_LIMIT_OPTIONS[tl_idx]
